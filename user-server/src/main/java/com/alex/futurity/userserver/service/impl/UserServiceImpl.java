@@ -3,17 +3,15 @@ package com.alex.futurity.userserver.service.impl;
 import com.alex.futurity.userserver.entity.User;
 import com.alex.futurity.userserver.repo.UserRepository;
 import com.alex.futurity.userserver.service.UserService;
+import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
 
 @Service
+@AllArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepo;
-
-    public UserServiceImpl(UserRepository userRepo) {
-        this.userRepo = userRepo;
-    }
 
     @Override
     public boolean isUserExist(String email) {

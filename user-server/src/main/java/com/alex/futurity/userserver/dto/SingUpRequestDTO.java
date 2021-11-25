@@ -1,6 +1,7 @@
 package com.alex.futurity.userserver.dto;
 
 import com.alex.futurity.userserver.entity.User;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -8,6 +9,7 @@ import javax.validation.constraints.*;
 import java.io.IOException;
 
 @Data
+@AllArgsConstructor
 public class SingUpRequestDTO {
 
     @NotNull(message = "Wrong email. Email must not be null")

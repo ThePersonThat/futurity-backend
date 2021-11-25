@@ -1,10 +1,12 @@
 package com.alex.futurity.userserver.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import javax.validation.constraints.*;
 
 @Data
+@AllArgsConstructor
 public class LoginRequestDTO {
     @NotNull(message = "Wrong email. Email must not be null")
     @NotEmpty(message = "Wrong email. Email must not be empty")

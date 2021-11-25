@@ -8,6 +8,7 @@ import com.alex.futurity.userserver.exception.UserAlreadyExistException;
 import com.alex.futurity.userserver.exception.UserNotFoundException;
 import com.alex.futurity.userserver.service.AuthService;
 import com.alex.futurity.userserver.service.UserService;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,19 +17,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 
 @Service
+@AllArgsConstructor
 @Log4j2
 public class AuthServiceImpl implements AuthService {
     private final UserService userService;
     private final PasswordEncoder encoder;
 
-    public AuthServiceImpl(UserService userService, PasswordEncoder encoder) {
-        this.userService = userService;
-        this.encoder = encoder;
-    }
-
     @Override
     @Transactional
-    public void singUp(SingUpRequestDTO request) throws IOException {
+    public User singUp(SingUpRequestDTO request) throws IOException {
         if (userService.isUserExist(request.getEmail())) {
             throw new UserAlreadyExistException("Error. A user with the same email address already exists");
         }
@@ -39,6 +36,7 @@ public class AuthServiceImpl implements AuthService {
         userService.saveUser(user);
 
         log.info("User {} have been registered", user);
+        return user;
     }
 
     @Override
