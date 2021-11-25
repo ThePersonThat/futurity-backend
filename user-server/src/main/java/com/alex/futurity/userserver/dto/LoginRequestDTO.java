@@ -2,16 +2,19 @@ package com.alex.futurity.userserver.dto;
 
 import lombok.Data;
 
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import javax.validation.constraints.*;
 
 @Data
 public class LoginRequestDTO {
-    @Email
+    @NotNull(message = "Wrong email. Email must not be null")
+    @NotEmpty(message = "Wrong email. Email must not be empty")
+    @NotBlank(message = "Wrong email. Email must not be empty")
+    @Email(message = "Wrong email. Correct pattern: emailName@email.com")
     private String email;
 
-    @Size(min = 6, max = 64)
+    @NotNull(message = "Wrong password. Password must not be null")
+    @NotEmpty(message = "Wrong password. Password must not be empty")
+    @NotBlank(message = "Wrong password. Password must not be empty")
+    @Size(min = 6, max = 64, message = "Wrong password. Password must be more than 6 and less 64 characters")
     private String password;
 }

@@ -1,6 +1,5 @@
 package com.alex.futurity.userserver.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,26 +14,26 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotNull
-    @NotEmpty
-    @NotBlank
-    @Email
+    @NotNull(message = "Wrong email. Email must not be null")
+    @NotEmpty(message = "Wrong email. Email must not be empty")
+    @NotBlank(message = "Wrong email. Email must not be empty")
+    @Email(message = "Wrong email. Correct pattern: emailName@email.com")
     @Column(unique = true)
     private String email;
 
-    @NotNull
-    @NotEmpty
-    @NotBlank
-    @Size(min = 4, max = 64)
+    @NotNull(message = "Wrong nickname. Nickname must not be null")
+    @NotEmpty(message = "Wrong nickname. Nickname must not be empty")
+    @NotBlank(message = "Wrong nickname. Nickname must not be empty")
+    @Size(min = 4, max = 64, message = "Wrong nickname. Nickname must be more than 4 and less 64 characters")
     private String nickname;
 
-    @NotNull
-    @NotEmpty
-    @NotBlank
-    @Size(min = 6, max = 64)
+    @NotNull(message = "Wrong password. Password must not be null")
+    @NotEmpty(message = "Wrong password. Password must not be empty")
+    @NotBlank(message = "Wrong password. Password must not be empty")
+    @Size(min = 6, max = 64, message = "Wrong password. Password must be more than 6 and less 64 characters")
     private String password;
 
-    @NotNull
+    @NotNull(message = "Avatar must not be null")
     @Lob
     private byte[] avatar;
 
@@ -43,5 +42,14 @@ public class User {
         this.nickname = nickname;
         this.password = password;
         this.avatar = avatar;
+    }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", email='" + email + '\'' +
+                ", nickname='" + nickname + '\'' +
+                '}';
     }
 }
