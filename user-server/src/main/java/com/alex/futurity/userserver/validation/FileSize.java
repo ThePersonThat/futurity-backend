@@ -13,7 +13,6 @@ import java.lang.annotation.Target;
 public @interface FileSize {
     String message() default "com.alex.futurity.userserver.validation.FileSize";
     int max() default 1024;
-    int min() default 0;
 
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};

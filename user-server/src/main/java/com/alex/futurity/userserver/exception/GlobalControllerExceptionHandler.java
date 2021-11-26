@@ -46,4 +46,11 @@ public class GlobalControllerExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(message);
     }
+
+    @ExceptionHandler({CannotUploadFileException.class})
+    public ResponseEntity<ErrorMessage> handleIOException(CannotUploadFileException e) {
+        ErrorMessage message = new ErrorMessage(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
+    }
 }

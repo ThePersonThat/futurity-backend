@@ -1,10 +1,9 @@
 package com.alex.futurity.userserver.exception;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
-
-@Data
+@Getter
 @AllArgsConstructor
 public class ErrorMessage {
     private String message;

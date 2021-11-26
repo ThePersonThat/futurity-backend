@@ -27,21 +27,17 @@ public class AuthController {
 
     @PostMapping(value = "/singup")
     public ResponseEntity<String> singUpUser(@RequestPart @FileNotEmpty(message = "Avatar must not be empty")
-                                                 @FileSize(max = 5 * 1024,
-                                                         message = "Avatar is too large. Max size: " + (5 * 1024))
-                                                 @FileType(types = {"jpeg", "png", "gif"},
-                                                         message = "Wrong image type. " +
-                                                                 "Must be one of the following: .jpeg, .png, .gif")
-                                                         MultipartFile avatar,
+                                             @FileSize(max = 5 * (1024 * 1024),
+                                                     message = "Avatar is too large. Max size 5MB")
+                                             @FileType(types = {"jpeg", "jpg", "png", "gif"},
+                                                     message = "Wrong image type. " +
+                                                             "Must be one of the following: .jpeg, .png, .gif")
+                                                     MultipartFile avatar,
                                              @Valid @RequestPart SingUpRequestDTO user) {
-        try {
-            user.setAvatar(avatar);
-            authService.singUp(user);
+        user.setAvatar(avatar);
+        authService.singUp(user);
 
-            return ResponseEntity.status(HttpStatus.CREATED).build();
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error uploading avatar");
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @PostMapping("/login")

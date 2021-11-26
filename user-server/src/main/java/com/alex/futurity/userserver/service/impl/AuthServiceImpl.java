@@ -4,6 +4,7 @@ import com.alex.futurity.userserver.dto.LoginRequestDTO;
 import com.alex.futurity.userserver.dto.SingUpRequestDTO;
 import com.alex.futurity.userserver.dto.LoginResponseDTO;
 import com.alex.futurity.userserver.entity.User;
+import com.alex.futurity.userserver.exception.CannotUploadFileException;
 import com.alex.futurity.userserver.exception.UserAlreadyExistException;
 import com.alex.futurity.userserver.exception.UserNotFoundException;
 import com.alex.futurity.userserver.service.AuthService;
@@ -25,18 +26,23 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     @Transactional
-    public User singUp(SingUpRequestDTO request) throws IOException {
+    public User singUp(SingUpRequestDTO request) {
         if (userService.isUserExist(request.getEmail())) {
-            throw new UserAlreadyExistException("Error. A user with the same email address already exists");
+            throw new UserAlreadyExistException();
         }
 
-        User user = request.toUser();
-        user.setPassword(encoder.encode(user.getPassword()));
+        try {
+            User user = request.toUser();
+            user.setPassword(encoder.encode(user.getPassword()));
 
-        userService.saveUser(user);
+            userService.saveUser(user);
 
-        log.info("User {} have been registered", user);
-        return user;
+            log.info("User {} have been registered", user);
+            return user;
+        } catch (IOException e) {
+            log.warn("The avatar {} cannot be read: {}", request.getAvatar(), e.getMessage());
+            throw new CannotUploadFileException("The avatar cannot be read");
+        }
     }
 
     @Override
