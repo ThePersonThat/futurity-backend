@@ -4,6 +4,7 @@ import com.alex.futurity.userserver.dto.LoginRequestDTO;
 import com.alex.futurity.userserver.dto.LoginResponseDTO;
 import com.alex.futurity.userserver.dto.SingUpRequestDTO;
 import com.alex.futurity.userserver.entity.User;
+import com.alex.futurity.userserver.exception.CannotUploadFileException;
 import com.alex.futurity.userserver.exception.UserAlreadyExistException;
 import com.alex.futurity.userserver.exception.UserNotFoundException;
 import com.alex.futurity.userserver.service.UserService;
@@ -20,6 +21,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
@@ -110,5 +112,22 @@ class AuthServiceImplTest {
 
         assertThatThrownBy(() -> authService.login(loginMockDto))
                 .isInstanceOf(UserNotFoundException.class);
+    }
+
+    @Test
+    @DisplayName("Should trow the IOException if an avatar cannot be read")
+    @SneakyThrows
+    void testSingUpWithIOException() {
+        String exceptionMessage = "Something went wrong";
+        LogCaptor log = LogCaptor.forClass(AuthServiceImpl.class);
+        SingUpRequestDTO dto = mock(SingUpRequestDTO.class);
+        when(dto.toUser()).thenThrow(new IOException(exceptionMessage));
+
+        assertThatThrownBy(() -> authService.singUp(dto))
+                .isInstanceOf(CannotUploadFileException.class)
+                .hasMessage("The avatar cannot be read");
+
+        assertThat(log.getLogs()).hasSize(1)
+                .contains(String.format("The avatar %s cannot be read: %s", dto.getAvatar(), exceptionMessage));
     }
 }
