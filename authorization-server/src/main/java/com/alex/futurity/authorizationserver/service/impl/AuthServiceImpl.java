@@ -1,6 +1,7 @@
 package com.alex.futurity.authorizationserver.service.impl;
 
 import com.alex.futurity.authorizationserver.domain.LoginDomain;
+import com.alex.futurity.authorizationserver.dto.JwtTokenResponseDTO;
 import com.alex.futurity.authorizationserver.dto.LoginRequestDTO;
 import com.alex.futurity.authorizationserver.dto.SingUpRequestDTO;
 import com.alex.futurity.authorizationserver.service.AuthService;
@@ -35,14 +36,15 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public String login(LoginRequestDTO dto) {
+    public JwtTokenResponseDTO login(LoginRequestDTO dto) {
         LoginDomain login = Optional.ofNullable(restTemplate.postForObject(userServerUrl + "/login", dto, LoginDomain.class))
                 .orElseThrow(() -> {
                     log.warn("Error getting user from the user server");
                     throw new IllegalStateException("Registration error. Try again after a while");
                 });
+        String token = jwtService.generateAccessToken(login.getId());
 
-        return jwtService.generateAccessToken(login.getId());
+        return new JwtTokenResponseDTO(token);
     }
 
     @Override
