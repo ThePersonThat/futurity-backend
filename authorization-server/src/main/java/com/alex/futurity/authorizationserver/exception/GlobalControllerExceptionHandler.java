@@ -39,4 +39,11 @@ public class GlobalControllerExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
     }
+
+    @ExceptionHandler({WrongTokenCodeException.class})
+    public ResponseEntity<ErrorMessage> handleWrongTokenCodeException(WrongTokenCodeException e) {
+        ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
+    }
 }
