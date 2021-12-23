@@ -1,10 +1,17 @@
 package com.alex.futurity.userserver.exception;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 @Getter
-@AllArgsConstructor
+@EqualsAndHashCode
 public class ErrorMessage {
-    private String message;
+    private final String message;
+
+    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+    public ErrorMessage(@JsonProperty("message") String message) {
+        this.message = message;
+    }
 }

@@ -8,10 +8,6 @@ import javax.validation.ConstraintValidatorContext;
 public class FileEmptyValidator implements ConstraintValidator<FileNotEmpty, MultipartFile> {
     @Override
     public boolean isValid(MultipartFile file, ConstraintValidatorContext constraintValidatorContext) {
-        if (file == null) {
-            return false;
-        }
-
         return !file.isEmpty();
     }
 }

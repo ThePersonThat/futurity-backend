@@ -1,12 +1,15 @@
 package com.alex.futurity.userserver.dto;
 
 import com.alex.futurity.userserver.entity.User;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 
 import javax.validation.constraints.Size;
 
 @Getter
+@AllArgsConstructor
+@EqualsAndHashCode
 public class LoginResponseDTO {
     private Long id;
 
