@@ -3,6 +3,7 @@ package com.alex.futurity.authorizationserver.exception;
 import org.apache.tomcat.util.http.fileupload.impl.FileSizeLimitExceededException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailSendException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -45,5 +46,12 @@ public class GlobalControllerExceptionHandler {
         ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
+    }
+
+    @ExceptionHandler({MailSendException.class})
+    public ResponseEntity<ErrorMessage> handleMailSendException(MailSendException e) {
+        ErrorMessage errorMessage = new ErrorMessage("Failed to send email. Try again after a while");
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
     }
 }
