@@ -2,8 +2,8 @@ package com.alex.futurity.authorizationserver.service.impl;
 
 import com.alex.futurity.authorizationserver.service.EmailSenderService;
 import com.alex.futurity.authorizationserver.utils.html.HtmlGenerator;
-import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -14,11 +14,16 @@ import javax.mail.MessagingException;
 import javax.mail.internet.MimeMessage;
 
 @Service
-@AllArgsConstructor
 @Log4j2
 public class EmailSenderServiceImpl implements EmailSenderService {
     private final JavaMailSender mailSender;
     private final HtmlGenerator generator;
+
+    public EmailSenderServiceImpl(JavaMailSender mailSender,
+                                  @Qualifier("confirmationHtmlGenerator") HtmlGenerator generator) {
+        this.mailSender = mailSender;
+        this.generator = generator;
+    }
 
     @Override
     @Async

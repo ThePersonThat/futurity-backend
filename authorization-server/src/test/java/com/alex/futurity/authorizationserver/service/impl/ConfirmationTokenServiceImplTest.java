@@ -1,9 +1,11 @@
 package com.alex.futurity.authorizationserver.service.impl;
 
+import com.alex.futurity.authorizationserver.dto.ConfirmCodeRequestDTO;
 import com.alex.futurity.authorizationserver.entity.ConfirmationToken;
 import com.alex.futurity.authorizationserver.exception.WrongTokenCodeException;
 import com.alex.futurity.authorizationserver.repo.ConfirmationTokenRepository;
 import com.alex.futurity.authorizationserver.service.ConfirmationTokenGenerator;
+import nl.altindag.log.LogCaptor;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,21 +48,27 @@ class ConfirmationTokenServiceImplTest {
     @Test
     @DisplayName("Should confirm token if a code exists")
     void testConfirmCode() {
+        LogCaptor captor = LogCaptor.forClass(ConfirmationTokenServiceImpl.class);
+        ConfirmCodeRequestDTO dto = new ConfirmCodeRequestDTO(email, code);
         Optional<ConfirmationToken> token = Optional.of(this.token);
-        when(tokenRepository.findByEmailAndCode(email, code)).thenReturn(token);
+        when(tokenRepository.findByEmailAndCode(anyString(), anyString())).thenReturn(token);
 
-        tokenService.confirmToken(email, code);
+        tokenService.confirmToken(dto);
 
         verify(tokenRepository).delete(token.get());
+        assertThat(captor.getLogs())
+                .hasSize(1)
+                .contains(String.format("Code %s for %s have been confirmed", code, email));
     }
 
     @Test
     @DisplayName("Should throw a WrongTokenException if a code does not exist")
     public void testConfirmCodeIfItDoesNotExist() {
+        ConfirmCodeRequestDTO dto = new ConfirmCodeRequestDTO(email, code);
         Optional<ConfirmationToken> token = Optional.empty();
         when(tokenRepository.findByEmailAndCode(email, code)).thenReturn(token);
 
-        assertThatThrownBy(() -> tokenService.confirmToken(email, code))
+        assertThatThrownBy(() -> tokenService.confirmToken(dto))
                 .isInstanceOf(WrongTokenCodeException.class)
                 .hasMessage("Wrong code, check the code again");
     }

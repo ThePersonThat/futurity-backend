@@ -1,6 +1,8 @@
 package com.alex.futurity.authorizationserver.service;
 
+import com.alex.futurity.authorizationserver.dto.ConfirmCodeRequestDTO;
+
 public interface ConfirmationTokenService {
     String generateConfirmationTokenForEmail(String email);
-    void confirmToken(String email, String code);
+    void confirmToken(ConfirmCodeRequestDTO confirmDto);
 }
