@@ -22,15 +22,19 @@ public class RsaReader {
     @Value("${jwt.key.private.file}")
     private String privatePath;
     private PrivateKey privateKey;
+    private final FileReader reader;
+
+    public RsaReader(FileReader fileReader) {
+        this.reader = fileReader;
+    }
 
     @PostConstruct
     private void readPrivateKeyFile() {
         try {
-            File privateFile = ResourceUtils.getFile("classpath:" + privatePath);
-            String privateKeyString = new String(Files.readAllBytes(privateFile.toPath()));
+            String privateKeyString = reader.readFileToString(privatePath);
             privateKey = parseKey(privateKeyString);
         } catch (Exception e) {
-            String message = "Error loading private key: " + e.getMessage();
+            String message = "Error parsing private key: " + e.getMessage();
             log.error(message);
 
             throw new IllegalStateException(message);
