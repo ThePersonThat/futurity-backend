@@ -3,6 +3,7 @@ package com.alex.futurity.userserver.controller;
 import com.alex.futurity.userserver.dto.LoginRequestDTO;
 import com.alex.futurity.userserver.dto.LoginResponseDTO;
 import com.alex.futurity.userserver.dto.SingUpRequestDTO;
+import com.alex.futurity.userserver.dto.UserExistRequestDTO;
 import com.alex.futurity.userserver.service.AuthService;
 import com.alex.futurity.userserver.validation.FileNotEmpty;
 import com.alex.futurity.userserver.validation.FileSize;
@@ -42,5 +43,11 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> loginUser(@Valid @RequestBody LoginRequestDTO request) {
         return ResponseEntity.ok(authService.login(request));
+    }
+
+    @PostMapping("/exist")
+    public ResponseEntity<Boolean> exist(@Valid @RequestBody UserExistRequestDTO request) {
+        boolean userExist = authService.isUserExist(request);
+        return ResponseEntity.ok().body(userExist);
     }
 }

@@ -3,6 +3,7 @@ package com.alex.futurity.userserver.service.impl;
 import com.alex.futurity.userserver.dto.LoginRequestDTO;
 import com.alex.futurity.userserver.dto.SingUpRequestDTO;
 import com.alex.futurity.userserver.dto.LoginResponseDTO;
+import com.alex.futurity.userserver.dto.UserExistRequestDTO;
 import com.alex.futurity.userserver.entity.User;
 import com.alex.futurity.userserver.exception.CannotUploadFileException;
 import com.alex.futurity.userserver.exception.UserAlreadyExistException;
@@ -56,5 +57,11 @@ public class AuthServiceImpl implements AuthService {
         }
 
         return new LoginResponseDTO(user);
+    }
+
+    @Override
+    @Transactional
+    public boolean isUserExist(UserExistRequestDTO request) {
+        return userService.findUserByEmail(request.getEmail()).isPresent();
     }
 }

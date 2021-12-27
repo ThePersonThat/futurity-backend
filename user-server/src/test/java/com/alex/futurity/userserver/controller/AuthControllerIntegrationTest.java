@@ -3,13 +3,13 @@ package com.alex.futurity.userserver.controller;
 import com.alex.futurity.userserver.dto.LoginRequestDTO;
 import com.alex.futurity.userserver.dto.LoginResponseDTO;
 import com.alex.futurity.userserver.dto.SingUpRequestDTO;
+import com.alex.futurity.userserver.dto.UserExistRequestDTO;
 import com.alex.futurity.userserver.entity.User;
 import com.alex.futurity.userserver.exception.ErrorMessage;
 import com.alex.futurity.userserver.repo.UserRepository;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +18,6 @@ import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.util.MultiValueMap;
 
 import java.util.List;
@@ -125,6 +124,33 @@ class AuthControllerIntegrationTest extends AuthConfigurator {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
         assertThat(response.getBody()).isEqualTo(errorMessage);
     }
+
+    @Test
+    @DisplayName("Should return true if user exists")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testExistIfUserExists() {
+        UserExistRequestDTO dto = new UserExistRequestDTO(validEmail);
+        SingUpRequestDTO singupDto = new SingUpRequestDTO(validEmail, validNickname, validPassword, validAvatar);
+        registerUser(singupDto);
+
+        ResponseEntity<Boolean> response = restTemplate.postForEntity(url + "/exist", dto, Boolean.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().booleanValue()).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should return false if user does not exist")
+    @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    void testExistIfUserDoesNotExist() {
+        UserExistRequestDTO dto = new UserExistRequestDTO(validEmail);
+
+        ResponseEntity<Boolean> response = restTemplate.postForEntity(url + "/exist", dto, Boolean.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody().booleanValue()).isFalse();
+    }
+
 
     @SneakyThrows
     private void registerUser(SingUpRequestDTO dto) {
