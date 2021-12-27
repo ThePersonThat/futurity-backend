@@ -11,6 +11,6 @@ public interface ConfirmationTokenRepository extends JpaRepository<ConfirmationT
     @Modifying
     @Query("delete from ConfirmationToken t where t.email = ?1")
     void deleteByEmail(String email);
-
-    Optional<ConfirmationToken> findByEmailAndCode(String email, String code);
+    Optional<ConfirmationToken> findByEmailAndCodeAndConfirmedTrue(String email, String code);
+    Optional<ConfirmationToken> findByEmailAndConfirmedTrue(String email);
 }

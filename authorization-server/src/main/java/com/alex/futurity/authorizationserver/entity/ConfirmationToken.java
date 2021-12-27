@@ -1,6 +1,5 @@
 package com.alex.futurity.authorizationserver.entity;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -30,7 +29,7 @@ public class ConfirmationToken {
     private String email;
 
     @Column(nullable = false)
-    private boolean registered = false;
+    private boolean confirmed = false;
 
     @NotNull
     @Column(nullable = false)

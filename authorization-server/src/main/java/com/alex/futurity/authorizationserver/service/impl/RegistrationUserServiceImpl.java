@@ -43,7 +43,5 @@ public class RegistrationUserServiceImpl implements RegistrationUserService {
         ));
 
         httpHelper.doPost(url, body, String.class);
-        String code = tokenService.generateConfirmationTokenForEmail(request.getEmail());
-        emailSender.sendConfirmationMessage(request.getEmail(), code);
     }
 }

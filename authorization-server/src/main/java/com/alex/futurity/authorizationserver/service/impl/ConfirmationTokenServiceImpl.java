@@ -2,7 +2,6 @@ package com.alex.futurity.authorizationserver.service.impl;
 
 import com.alex.futurity.authorizationserver.dto.ConfirmCodeRequestDTO;
 import com.alex.futurity.authorizationserver.entity.ConfirmationToken;
-import com.alex.futurity.authorizationserver.exception.WrongTokenCodeException;
 import com.alex.futurity.authorizationserver.repo.ConfirmationTokenRepository;
 import com.alex.futurity.authorizationserver.service.ConfirmationTokenGenerator;
 import com.alex.futurity.authorizationserver.service.ConfirmationTokenService;
@@ -31,11 +30,19 @@ public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
     @Override
     @Transactional
     public void confirmToken(ConfirmCodeRequestDTO confirmDto) {
-        ConfirmationToken token = tokenRepo.findByEmailAndCode(confirmDto.getEmail(), confirmDto.getEmail())
-                .orElseThrow(WrongTokenCodeException::new);
+        ConfirmationToken token = tokenRepo.findByEmailAndCodeAndConfirmedTrue(confirmDto.getEmail(), confirmDto.getCode())
+                .orElseThrow(() -> new IllegalStateException(String.format("Wrong code for %s. Check the code again",
+                        confirmDto.getEmail())));
 
-        tokenRepo.delete(token);
+        token.setConfirmed(true);
+        tokenRepo.save(token);
+
         log.info("Code {} for {} have been confirmed", confirmDto.getCode(), confirmDto.getEmail());
+    }
+
+    @Override
+    public boolean isEmailConfirmed(String email) {
+        return tokenRepo.findByEmailAndConfirmedTrue(email).isPresent();
     }
 
     private void deleteIfEmailExist(String email) {

@@ -7,4 +7,5 @@ public interface AuthService {
     JwtTokenResponseDTO login(LoginRequestDTO request);
     void singUp(SingUpRequestDTO request, MultipartFile avatarDto);
     void confirmCode(ConfirmCodeRequestDTO confirmDto);
+    void confirmEmail(ConfirmEmailRequestDTO confirmDto);
 }
