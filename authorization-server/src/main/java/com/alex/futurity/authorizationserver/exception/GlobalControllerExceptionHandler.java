@@ -41,17 +41,17 @@ public class GlobalControllerExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
     }
 
-    @ExceptionHandler({WrongTokenCodeException.class})
-    public ResponseEntity<ErrorMessage> handleWrongTokenCodeException(WrongTokenCodeException e) {
-        ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessage);
-    }
-
     @ExceptionHandler({MailSendException.class})
     public ResponseEntity<ErrorMessage> handleMailSendException(MailSendException e) {
         ErrorMessage errorMessage = new ErrorMessage("Failed to send email. Try again after a while");
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+    }
+
+    @ExceptionHandler({ClientSideException.class})
+    public ResponseEntity<ErrorMessage> handleClientSideException(ClientSideException e) {
+        ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+
+        return ResponseEntity.status(e.getStatus()).body(errorMessage);
     }
 }

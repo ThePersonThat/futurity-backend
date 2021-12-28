@@ -2,11 +2,13 @@ package com.alex.futurity.authorizationserver.service.impl;
 
 import com.alex.futurity.authorizationserver.dto.ConfirmCodeRequestDTO;
 import com.alex.futurity.authorizationserver.dto.ConfirmEmailRequestDTO;
+import com.alex.futurity.authorizationserver.exception.ClientSideException;
 import com.alex.futurity.authorizationserver.service.ConfirmationService;
 import com.alex.futurity.authorizationserver.service.ConfirmationTokenService;
 import com.alex.futurity.authorizationserver.service.EmailSenderService;
 import com.alex.futurity.authorizationserver.utils.HttpHelper;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -26,7 +28,7 @@ public class ConfirmationServiceImpl implements ConfirmationService {
     @Override
     public void confirmEmail(ConfirmEmailRequestDTO dto) {
         if (httpHelper.doPost(userServerUrl + "/exist", dto, Boolean.class)) {
-            throw new IllegalStateException(String.format("%s already registered", dto.getEmail()));
+            throw new ClientSideException(String.format("%s already registered", dto.getEmail()), HttpStatus.CONFLICT);
         }
 
         String code = tokenService.generateConfirmationTokenForEmail(dto.getEmail());

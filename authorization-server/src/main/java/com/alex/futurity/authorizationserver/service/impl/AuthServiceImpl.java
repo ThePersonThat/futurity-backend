@@ -1,8 +1,10 @@
 package com.alex.futurity.authorizationserver.service.impl;
 
 import com.alex.futurity.authorizationserver.dto.*;
+import com.alex.futurity.authorizationserver.exception.ClientSideException;
 import com.alex.futurity.authorizationserver.service.*;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -23,7 +25,7 @@ public class AuthServiceImpl implements AuthService {
         if (confirmationService.isEmailConfirmed(request.getEmail())) {
             registrationService.registerUser(request, avatar);
         } else {
-            throw new IllegalStateException(String.format("%s is not confirmed", request.getEmail()));
+            throw new ClientSideException(String.format("%s is not confirmed", request.getEmail()), HttpStatus.CONFLICT);
         }
     }
 

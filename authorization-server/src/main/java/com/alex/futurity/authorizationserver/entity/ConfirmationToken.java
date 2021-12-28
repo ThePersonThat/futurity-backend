@@ -31,8 +31,6 @@ public class ConfirmationToken {
     @Column(nullable = false)
     private boolean confirmed = false;
 
-    @NotNull
-    @Column(nullable = false)
     private LocalDateTime confirmedAt;
 
     @NotNull
@@ -42,7 +40,6 @@ public class ConfirmationToken {
     public ConfirmationToken(String code, String email, LocalDateTime expiredAt) {
         this.code = code;
         this.email = email;
-        this.confirmedAt = LocalDateTime.now();
         this.expiredAt = expiredAt;
     }
 }
