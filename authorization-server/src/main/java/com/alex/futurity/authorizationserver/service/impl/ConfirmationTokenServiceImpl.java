@@ -34,13 +34,12 @@ public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
     @Override
     @Transactional
     public void confirmToken(ConfirmCodeRequestDTO confirmDto) {
-        ConfirmationToken token = tokenRepo.findByEmailAndCodeAndConfirmedTrue(confirmDto.getEmail(), confirmDto.getCode())
+        ConfirmationToken token = tokenRepo.findByEmailAndCodeAndConfirmedFalse(confirmDto.getEmail(), confirmDto.getCode())
                 .orElseThrow(() -> new ClientSideException(String.format("Wrong code for %s. Check the code again",
                         confirmDto.getEmail()), HttpStatus.NOT_FOUND));
 
         token.setConfirmedAt(LocalDateTime.now());
         token.setConfirmed(true);
-        tokenRepo.save(token);
 
         log.info("Code {} for {} have been confirmed", confirmDto.getCode(), confirmDto.getEmail());
     }

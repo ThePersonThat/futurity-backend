@@ -27,16 +27,14 @@ public class AuthController {
     }
 
     @PostMapping("/confirm-code")
-    public ResponseEntity<String> confirmCode(@Valid @RequestBody ConfirmCodeRequestDTO code) {
+    @ResponseStatus(value = HttpStatus.OK)
+    public void confirmCode(@Valid @RequestBody ConfirmCodeRequestDTO code) {
         service.confirmCode(code);
-
-        return ResponseEntity.ok().body("Confirmed");
     }
 
     @PostMapping("/confirm-email")
-    public ResponseEntity<String> confirmEmail(@Valid @RequestBody ConfirmEmailRequestDTO email) {
+    @ResponseStatus(value = HttpStatus.OK)
+    public void confirmEmail(@Valid @RequestBody ConfirmEmailRequestDTO email) {
         service.confirmEmail(email);
-
-        return ResponseEntity.ok().body("The confirmation message is send");
     }
 }

@@ -25,7 +25,7 @@ public class AuthServiceImpl implements AuthService {
         if (confirmationService.isEmailConfirmed(request.getEmail())) {
             registrationService.registerUser(request, avatar);
         } else {
-            throw new ClientSideException(String.format("%s is not confirmed", request.getEmail()), HttpStatus.CONFLICT);
+            throw new ClientSideException(String.format("%s is not confirmed", request.getEmail()), HttpStatus.FORBIDDEN);
         }
     }
 

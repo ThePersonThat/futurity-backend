@@ -1,10 +1,18 @@
 package com.alex.futurity.authorizationserver.dto;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.Getter;
 
+import javax.validation.constraints.NotNull;
+
 @Getter
-@AllArgsConstructor
 public class JwtTokenResponseDTO {
-    private String token;
+    @NotNull
+    private final String token;
+
+    @JsonCreator(mode = JsonCreator.Mode.PROPERTIES)
+    public JwtTokenResponseDTO(@JsonProperty("token") String token) {
+        this.token = token;
+    }
 }

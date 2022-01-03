@@ -1,12 +1,11 @@
 package com.alex.futurity.authorizationserver.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
-import org.springframework.web.multipart.MultipartFile;
+import lombok.Getter;
 
 import javax.validation.constraints.*;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class SingUpRequestDTO {
     @NotBlank(message = "Wrong email. Email must not be empty")

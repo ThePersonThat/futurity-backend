@@ -1,11 +1,11 @@
 package com.alex.futurity.authorizationserver.domain;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
 import javax.validation.constraints.Size;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class LoginDomain {
     private Long id;

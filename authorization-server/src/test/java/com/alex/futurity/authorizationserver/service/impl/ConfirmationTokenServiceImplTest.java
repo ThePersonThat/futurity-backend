@@ -2,7 +2,7 @@ package com.alex.futurity.authorizationserver.service.impl;
 
 import com.alex.futurity.authorizationserver.dto.ConfirmCodeRequestDTO;
 import com.alex.futurity.authorizationserver.entity.ConfirmationToken;
-import com.alex.futurity.authorizationserver.exception.WrongTokenCodeException;
+import com.alex.futurity.authorizationserver.exception.ClientSideException;
 import com.alex.futurity.authorizationserver.repo.ConfirmationTokenRepository;
 import com.alex.futurity.authorizationserver.service.ConfirmationTokenGenerator;
 import nl.altindag.log.LogCaptor;
@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -51,11 +52,14 @@ class ConfirmationTokenServiceImplTest {
         LogCaptor captor = LogCaptor.forClass(ConfirmationTokenServiceImpl.class);
         ConfirmCodeRequestDTO dto = new ConfirmCodeRequestDTO(email, code);
         Optional<ConfirmationToken> token = Optional.of(this.token);
-        when(tokenRepository.findByEmailAndCode(anyString(), anyString())).thenReturn(token);
+        when(tokenRepository.findByEmailAndCodeAndConfirmedFalse(anyString(), anyString())).thenReturn(token);
+        LocalDateTime now = LocalDateTime.now();
 
         tokenService.confirmToken(dto);
 
-        verify(tokenRepository).delete(token.get());
+        assertThat(token.get().getConfirmedAt().truncatedTo(ChronoUnit.SECONDS))
+                .isEqualTo(now.truncatedTo(ChronoUnit.SECONDS));
+        assertThat(token.get().isConfirmed()).isTrue();
         assertThat(captor.getLogs())
                 .hasSize(1)
                 .contains(String.format("Code %s for %s have been confirmed", code, email));
@@ -66,10 +70,10 @@ class ConfirmationTokenServiceImplTest {
     public void testConfirmCodeIfItDoesNotExist() {
         ConfirmCodeRequestDTO dto = new ConfirmCodeRequestDTO(email, code);
         Optional<ConfirmationToken> token = Optional.empty();
-        when(tokenRepository.findByEmailAndCode(email, code)).thenReturn(token);
+        when(tokenRepository.findByEmailAndCodeAndConfirmedFalse(email, code)).thenReturn(token);
 
         assertThatThrownBy(() -> tokenService.confirmToken(dto))
-                .isInstanceOf(WrongTokenCodeException.class)
-                .hasMessage("Wrong code, check the code again");
+                .isInstanceOf(ClientSideException.class)
+                .hasMessage(String.format("Wrong code for %s. Check the code again", dto.getEmail()));
     }
 }

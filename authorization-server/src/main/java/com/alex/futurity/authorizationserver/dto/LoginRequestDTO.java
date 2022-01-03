@@ -1,13 +1,13 @@
 package com.alex.futurity.authorizationserver.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
 
-@Data
+@Getter
 @AllArgsConstructor
 public class LoginRequestDTO {
     @NotBlank(message = "Wrong email. Email must not be empty")
