@@ -1,7 +1,8 @@
 package com.alex.futurity.authorizationserver.service.impl;
 
 import com.alex.futurity.authorizationserver.domain.LoginDomain;
-import com.alex.futurity.authorizationserver.dto.JwtTokenResponseDTO;
+import com.alex.futurity.authorizationserver.dto.JwtRefreshResponseDTO;
+import com.alex.futurity.authorizationserver.dto.JwtTokenDTO;
 import com.alex.futurity.authorizationserver.dto.LoginRequestDTO;
 import com.alex.futurity.authorizationserver.service.JwtService;
 import com.alex.futurity.authorizationserver.service.LoginUserService;
@@ -31,10 +32,14 @@ public class LoginUserServiceImpl implements LoginUserService {
     }
 
     @Override
-    public JwtTokenResponseDTO loginUser(LoginRequestDTO dto) {
+    public JwtRefreshResponseDTO loginUser(LoginRequestDTO dto) {
         LoginDomain login = httpHelper.doPost(url, dto, LoginDomain.class);
-        String token = jwtService.generateAccessToken(login.getId());
 
-        return new JwtTokenResponseDTO(token);
+        return jwtService.generateAccessAndRefreshTokenPair(login.getId());
+    }
+
+    @Override
+    public JwtRefreshResponseDTO refreshToken(JwtTokenDTO request) {
+        return jwtService.refreshAccessToken(request);
     }
 }

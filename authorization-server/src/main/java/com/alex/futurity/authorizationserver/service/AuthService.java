@@ -4,8 +4,9 @@ import com.alex.futurity.authorizationserver.dto.*;
 import org.springframework.web.multipart.MultipartFile;
 
 public interface AuthService {
-    JwtTokenResponseDTO login(LoginRequestDTO request);
+    JwtRefreshResponseDTO login(LoginRequestDTO request);
     void singUp(SingUpRequestDTO request, MultipartFile avatarDto);
     void confirmCode(ConfirmCodeRequestDTO confirmDto);
     void confirmEmail(ConfirmEmailRequestDTO confirmDto);
+    JwtRefreshResponseDTO refreshToken(JwtTokenDTO request);
 }

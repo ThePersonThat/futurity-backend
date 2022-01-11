@@ -16,7 +16,7 @@ public class AuthServiceImpl implements AuthService {
     private final ConfirmationService confirmationService;
 
     @Override
-    public JwtTokenResponseDTO login(LoginRequestDTO dto) {
+    public JwtRefreshResponseDTO login(LoginRequestDTO dto) {
         return loginService.loginUser(dto);
     }
 
@@ -37,5 +37,10 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public void confirmEmail(ConfirmEmailRequestDTO confirmDto) {
         confirmationService.confirmEmail(confirmDto);
+    }
+
+
+    public JwtRefreshResponseDTO refreshToken(JwtTokenDTO request) {
+        return loginService.refreshToken(request);
     }
 }

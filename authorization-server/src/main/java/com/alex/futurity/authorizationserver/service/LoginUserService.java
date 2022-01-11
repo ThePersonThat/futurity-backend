@@ -1,8 +1,10 @@
 package com.alex.futurity.authorizationserver.service;
 
-import com.alex.futurity.authorizationserver.dto.JwtTokenResponseDTO;
+import com.alex.futurity.authorizationserver.dto.JwtRefreshResponseDTO;
+import com.alex.futurity.authorizationserver.dto.JwtTokenDTO;
 import com.alex.futurity.authorizationserver.dto.LoginRequestDTO;
 
 public interface LoginUserService {
-    JwtTokenResponseDTO loginUser(LoginRequestDTO dto);
+    JwtRefreshResponseDTO loginUser(LoginRequestDTO dto);
+    JwtRefreshResponseDTO refreshToken(JwtTokenDTO request);
 }

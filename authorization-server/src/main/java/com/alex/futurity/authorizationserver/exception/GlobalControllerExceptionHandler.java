@@ -8,10 +8,16 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartException;
 
 @ControllerAdvice
 public class GlobalControllerExceptionHandler {
+    @ExceptionHandler({HttpClientErrorException.class})
+    public ResponseEntity<String> handleHttpClientErrorException(HttpClientErrorException e) {
+        return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsString());
+    }
+
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<ErrorMessage> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         BindingResult result = e.getBindingResult();
