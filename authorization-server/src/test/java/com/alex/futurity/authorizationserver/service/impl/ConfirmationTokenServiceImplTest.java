@@ -31,7 +31,8 @@ class ConfirmationTokenServiceImplTest {
 
     private String email = "alex@jpeg.com";
     private String code = "123456";
-    private ConfirmationToken token = new ConfirmationToken(code, email, LocalDateTime.now());
+    private ConfirmationToken token = new ConfirmationToken(code, email, LocalDateTime.now().plusHours(10));
+    ConfirmCodeRequestDTO dto = new ConfirmCodeRequestDTO(email, code);
 
     @Test
     @DisplayName("Should generate a confirmation token")
@@ -50,7 +51,6 @@ class ConfirmationTokenServiceImplTest {
     @DisplayName("Should confirm token if a code exists")
     void testConfirmCode() {
         LogCaptor captor = LogCaptor.forClass(ConfirmationTokenServiceImpl.class);
-        ConfirmCodeRequestDTO dto = new ConfirmCodeRequestDTO(email, code);
         Optional<ConfirmationToken> token = Optional.of(this.token);
         when(tokenRepository.findByEmailAndCodeAndConfirmedFalse(anyString(), anyString())).thenReturn(token);
         LocalDateTime now = LocalDateTime.now();
@@ -66,14 +66,24 @@ class ConfirmationTokenServiceImplTest {
     }
 
     @Test
-    @DisplayName("Should throw a WrongTokenException if a code does not exist")
+    @DisplayName("Should throw a ClientSideException if a code does not exist")
     public void testConfirmCodeIfItDoesNotExist() {
-        ConfirmCodeRequestDTO dto = new ConfirmCodeRequestDTO(email, code);
         Optional<ConfirmationToken> token = Optional.empty();
         when(tokenRepository.findByEmailAndCodeAndConfirmedFalse(email, code)).thenReturn(token);
 
         assertThatThrownBy(() -> tokenService.confirmToken(dto))
                 .isInstanceOf(ClientSideException.class)
                 .hasMessage(String.format("Wrong code for %s. Check the code again", dto.getEmail()));
+    }
+
+    @Test
+    @DisplayName("Should throw a ClientSideException if code is expired")
+    public void testConfirmCodeIFitIsExpired() {
+        ConfirmationToken token = new ConfirmationToken(code, email, LocalDateTime.now().minusHours(1));
+        when(tokenRepository.findByEmailAndCodeAndConfirmedFalse(anyString(), anyString())).thenReturn(Optional.of(token));
+
+        assertThatThrownBy(() -> tokenService.confirmToken(new ConfirmCodeRequestDTO(email, code)))
+                .isInstanceOf(ClientSideException.class)
+                .hasMessage("Code is expired. Try again");
     }
 }

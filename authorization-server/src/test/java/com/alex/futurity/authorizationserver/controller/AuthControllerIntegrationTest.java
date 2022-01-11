@@ -3,11 +3,14 @@ package com.alex.futurity.authorizationserver.controller;
 import com.alex.futurity.authorizationserver.domain.LoginDomain;
 import com.alex.futurity.authorizationserver.dto.*;
 import com.alex.futurity.authorizationserver.entity.ConfirmationToken;
+import com.alex.futurity.authorizationserver.entity.RefreshToken;
 import com.alex.futurity.authorizationserver.exception.ErrorMessage;
 import com.alex.futurity.authorizationserver.repo.ConfirmationTokenRepository;
+import com.alex.futurity.authorizationserver.repo.RefreshTokenRepository;
 import com.alex.futurity.authorizationserver.utils.RsaReader;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -20,7 +23,10 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -37,6 +43,9 @@ class AuthControllerIntegrationTest extends Configurator {
 
     @Autowired
     private ConfirmationTokenRepository tokenRepo;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepo;
 
     @Autowired
     private RsaReader reader;
@@ -114,20 +123,78 @@ class AuthControllerIntegrationTest extends Configurator {
     @Test
     @DisplayName("Should return jwt token if user exists")
     void testLogin() {
-        /*LoginRequestDTO dto = new LoginRequestDTO(manager.getEmail(), manager.getPassword());
-        LoginDomain loginDomain = new LoginDomain(1L, "alex");
+        LoginRequestDTO dto = new LoginRequestDTO(manager.getEmail(), manager.getPassword());
+        Long userId = 1L;
+        LoginDomain loginDomain = new LoginDomain(userId, "alex");
         when(mockRest.postForEntity(anyString(), any(), any()))
                 .thenReturn(ResponseEntity.ok(loginDomain));
 
-        ResponseEntity<JwtRefreshResponseDTO> response = restTemplate.postForEntity(url + "/login/", dto, JwtRefreshResponseDTO.class);
-
+        ResponseEntity<JwtTokenDTO> response = restTemplate.postForEntity(url + "/login/", dto, JwtTokenDTO.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         String token = response.getBody().getToken();
         assertThat(token).isNotNull().isNotEmpty();
         Claims body = Jwts.parser().setSigningKey(reader.getPrivateKey())
                 .parseClaimsJws(token).getBody();
-        assertThat(body.getSubject()).isEqualTo(loginDomain.getId().toString());*/
+        assertThat(body.getSubject()).isEqualTo(loginDomain.getId().toString());
+
+        RefreshToken refreshToken = getRefreshToken();
+        assertThat(refreshToken.getUserId()).isEqualTo(userId);
+
+        String cookie = response.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+        assertThat(cookie).isNotNull().isNotEmpty();
+        assertThat(cookie.contains("refresh_token=" + refreshToken.getRefreshToken())).isTrue();
     }
+
+    @Test
+    @DisplayName("Should return new access token if the refresh token is valid")
+    @SneakyThrows
+    void testRefreshToken() {
+        Long userId = 1L;
+        LoginDomain loginDomain = new LoginDomain(userId, "alex");
+        LoginRequestDTO dto = new LoginRequestDTO(manager.getEmail(), manager.getPassword());
+        when(mockRest.postForEntity(anyString(), any(), any()))
+                .thenReturn(ResponseEntity.ok(loginDomain));
+        ResponseEntity<JwtTokenDTO> loginResponse = restTemplate.postForEntity(url + "/login/", dto, JwtTokenDTO.class);
+        String cookie = loginResponse.getHeaders().getFirst(HttpHeaders.SET_COOKIE);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, cookie);
+
+        Thread.sleep(1000); // wait one second to make another token
+
+        ResponseEntity<JwtTokenDTO> response = restTemplate.exchange(url + "/refresh-token/", HttpMethod.GET,
+                new HttpEntity<>(headers), JwtTokenDTO.class);
+
+        String token = response.getBody().getToken();
+        assertThat(token).isNotEqualTo(loginResponse.getBody().getToken());
+        Claims body = Jwts.parser().setSigningKey(reader.getPrivateKey())
+                .parseClaimsJws(token).getBody();
+        assertThat(body.getSubject()).isEqualTo(userId.toString());
+    }
+
+    @Test
+    @DisplayName("Should error if refresh token is expired")
+    @SneakyThrows
+    void testRefreshTokenWhenItIsExpired() {
+        Long userId = 1L;
+        Date date = Date.from(LocalDateTime.now().minusHours(1).toInstant(OffsetDateTime.now().getOffset()));
+        String token = Jwts.builder().setSubject(userId.toString())
+                .setExpiration(date)
+                .compact();
+
+        refreshTokenRepo.save(new RefreshToken(userId, token));
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.add(HttpHeaders.COOKIE, "refresh_token=" + token);
+
+        ResponseEntity<ErrorMessage> response = restTemplate.exchange(url + "/refresh-token/", HttpMethod.GET,
+                new HttpEntity<>(headers), ErrorMessage.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.GONE);
+        assertThat(response.getBody()).isEqualTo(new ErrorMessage("Refresh token is expired"));
+    }
+
+
 
     @Test
     @DisplayName("Should return 403 Forbidden if email is not confirmed")
@@ -184,6 +251,12 @@ class AuthControllerIntegrationTest extends Configurator {
 
     private ConfirmationToken getToken() {
         List<ConfirmationToken> tokens = tokenRepo.findAll();
+        assertThat(tokens).hasSize(1);
+        return tokens.get(0);
+    }
+
+    private RefreshToken getRefreshToken() {
+        List<RefreshToken> tokens = refreshTokenRepo.findAll();
         assertThat(tokens).hasSize(1);
         return tokens.get(0);
     }

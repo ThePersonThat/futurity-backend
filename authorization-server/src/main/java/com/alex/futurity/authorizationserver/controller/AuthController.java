@@ -49,8 +49,8 @@ public class AuthController {
         service.confirmEmail(email);
     }
 
-    @PostMapping("/refresh-token")
-    public ResponseEntity<JwtRefreshResponseDTO> refreshToken(@CookieValue(REFRESH_TOKEN_KEY) String refreshToken) {
+    @GetMapping("/refresh-token")
+    public ResponseEntity<JwtTokenDTO> refreshToken(@CookieValue(REFRESH_TOKEN_KEY) String refreshToken) {
         return ResponseEntity.ok(service.refreshToken(new JwtTokenDTO(refreshToken)));
     }
 }

@@ -39,7 +39,7 @@ public class LoginUserServiceImpl implements LoginUserService {
     }
 
     @Override
-    public JwtRefreshResponseDTO refreshToken(JwtTokenDTO request) {
+    public JwtTokenDTO refreshToken(JwtTokenDTO request) {
         return jwtService.refreshAccessToken(request);
     }
 }

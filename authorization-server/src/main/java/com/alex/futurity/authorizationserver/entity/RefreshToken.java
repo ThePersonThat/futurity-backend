@@ -1,6 +1,7 @@
 package com.alex.futurity.authorizationserver.entity;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -8,7 +9,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Entity
-@Data
+@Getter
 @NoArgsConstructor
 public class RefreshToken {
     @Id

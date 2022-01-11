@@ -38,7 +38,7 @@ public class ConfirmationTokenServiceImpl implements ConfirmationTokenService {
                 .orElseThrow(() -> new ClientSideException(String.format("Wrong code for %s. Check the code again",
                         confirmDto.getEmail()), HttpStatus.NOT_FOUND));
 
-        if (LocalDateTime.now().isBefore(token.getExpiredAt())) {
+        if (LocalDateTime.now().isAfter(token.getExpiredAt())) {
             throw new ClientSideException("Code is expired. Try again", HttpStatus.GONE);
         }
 

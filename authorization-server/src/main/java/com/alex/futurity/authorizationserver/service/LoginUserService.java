@@ -6,5 +6,5 @@ import com.alex.futurity.authorizationserver.dto.LoginRequestDTO;
 
 public interface LoginUserService {
     JwtRefreshResponseDTO loginUser(LoginRequestDTO dto);
-    JwtRefreshResponseDTO refreshToken(JwtTokenDTO request);
+    JwtTokenDTO refreshToken(JwtTokenDTO request);
 }

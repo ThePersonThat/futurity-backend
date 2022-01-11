@@ -36,14 +36,14 @@ public class JwtServiceImpl implements JwtService {
 
     @Override
     @Transactional
-    public JwtRefreshResponseDTO refreshAccessToken(JwtTokenDTO request) {
+    public JwtTokenDTO refreshAccessToken(JwtTokenDTO request) {
         RefreshToken refreshToken = refreshTokenRepo.findByRefreshToken(request.getToken())
                 .orElseThrow(() -> new ClientSideException("Refresh token is not found", HttpStatus.NOT_FOUND));
 
         validateRefreshToken(refreshToken);
         String newAccessToken = generateAccessToken(refreshToken.getUserId());
 
-        return new JwtRefreshResponseDTO(newAccessToken, refreshToken.getRefreshToken(), expiredRefreshToken * 86400);
+        return new JwtTokenDTO(newAccessToken);
     }
 
     @Override

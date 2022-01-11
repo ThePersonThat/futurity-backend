@@ -40,7 +40,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
 
-    public JwtRefreshResponseDTO refreshToken(JwtTokenDTO request) {
+    public JwtTokenDTO refreshToken(JwtTokenDTO request) {
         return loginService.refreshToken(request);
     }
 }
