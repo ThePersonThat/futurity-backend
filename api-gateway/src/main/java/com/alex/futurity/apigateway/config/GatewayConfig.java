@@ -29,7 +29,7 @@ public class GatewayConfig {
                             f.rewritePath("/secured/(?<segment>.*)", "/${segment}");
                             return f;
                         })
-                        .uri("http://localhost:8080/"))
+                        .uri("http://localhost:8085/"))
                 .build();
     }
 }

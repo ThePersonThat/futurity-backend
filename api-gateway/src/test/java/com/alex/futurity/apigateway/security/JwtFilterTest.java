@@ -1,5 +1,8 @@
 package com.alex.futurity.apigateway.security;
 
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.impl.DefaultClaims;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -9,12 +12,15 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.http.server.reactive.ServerHttpResponse;
+import org.springframework.mock.http.server.reactive.MockServerHttpResponse;
 import org.springframework.web.server.ServerWebExchange;
 
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 
@@ -30,8 +36,6 @@ class JwtFilterTest {
     private ServerWebExchange exchange;
     @Mock
     private ServerHttpRequest request;
-    @Mock
-    private ServerHttpResponse response;
     @Mock
     private GatewayFilterChain chain;
     @Mock
@@ -51,21 +55,23 @@ class JwtFilterTest {
     @Test
     @DisplayName("Should return error if a request does not have the authorization header")
     void testFilterIfRequestDoesNotHaveAuthorizationHeader() {
+        ServerHttpResponse response = new MockServerHttpResponse();
         when(exchange.getRequest()).thenReturn(request);
         when(exchange.getResponse()).thenReturn(response);
         when(validator.isSecured(any())).thenReturn(true);
         when(request.getHeaders()).thenReturn(headers);
-        when(headers.containsKey(anyString())).thenReturn(false);
 
         filter.filter(exchange, chain);
 
-        verify(response).setStatusCode(eq(HttpStatus.UNAUTHORIZED));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_JSON);
     }
 
     @Test
     @DisplayName("Should return error if a request has the invalid token")
     void testFilterIfRequestHasInvalidToken() {
         String token = "someMockToken";
+        ServerHttpResponse response = new MockServerHttpResponse();
         when(exchange.getRequest()).thenReturn(request);
         when(exchange.getResponse()).thenReturn(response);
         when(validator.isSecured(any())).thenReturn(true);
@@ -76,7 +82,7 @@ class JwtFilterTest {
 
         filter.filter(exchange, chain);
 
-        verify(response).setStatusCode(eq(HttpStatus.UNAUTHORIZED));
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_JSON);
     }
-
 }
