@@ -39,7 +39,7 @@ class JwtFilterTest {
     @Mock
     private GatewayFilterChain chain;
     @Mock
-    private HttpHeaders headers;
+    private AuthorizationHeaderHandler handler;
 
     @Test
     @DisplayName("Should not validate the request")
@@ -59,7 +59,7 @@ class JwtFilterTest {
         when(exchange.getRequest()).thenReturn(request);
         when(exchange.getResponse()).thenReturn(response);
         when(validator.isSecured(any())).thenReturn(true);
-        when(request.getHeaders()).thenReturn(headers);
+        when(handler.hasAuthorizationHeader(any())).thenReturn(false);
 
         filter.filter(exchange, chain);
 
@@ -75,9 +75,7 @@ class JwtFilterTest {
         when(exchange.getRequest()).thenReturn(request);
         when(exchange.getResponse()).thenReturn(response);
         when(validator.isSecured(any())).thenReturn(true);
-        when(request.getHeaders()).thenReturn(headers);
-        when(headers.containsKey(anyString())).thenReturn(true);
-        when(headers.getOrEmpty(anyString())).thenReturn(List.of(token));
+        when(handler.getTokenFromHeader(any())).thenReturn(token);
         doThrow(new RuntimeException()).when(jwtService).verifyToken(anyString());
 
         filter.filter(exchange, chain);
