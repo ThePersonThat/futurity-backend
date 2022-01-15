@@ -5,8 +5,7 @@ import com.alex.futurity.userserver.dto.LoginResponseDTO;
 import com.alex.futurity.userserver.dto.SingUpRequestDTO;
 import com.alex.futurity.userserver.entity.User;
 import com.alex.futurity.userserver.exception.CannotUploadFileException;
-import com.alex.futurity.userserver.exception.UserAlreadyExistException;
-import com.alex.futurity.userserver.exception.UserNotFoundException;
+import com.alex.futurity.userserver.exception.ClientSideException;
 import com.alex.futurity.userserver.service.UserService;
 import lombok.SneakyThrows;
 import nl.altindag.log.LogCaptor;
@@ -78,7 +77,7 @@ class AuthServiceImplTest {
         when(userService.isUserExist(anyString())).thenReturn(true);
 
         assertThatThrownBy(() -> authService.singUp(singUpMockDTO))
-                .isInstanceOf(UserAlreadyExistException.class)
+                .isInstanceOf(ClientSideException.class)
                 .hasMessage("Error. A user with the same email address already exists");
     }
 
@@ -101,7 +100,7 @@ class AuthServiceImplTest {
         when(userService.findUserByEmail(anyString())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(loginMockDto))
-                .isInstanceOf(UserNotFoundException.class);
+                .isInstanceOf(ClientSideException.class);
     }
 
     @Test
@@ -111,7 +110,7 @@ class AuthServiceImplTest {
         when(encoder.matches(anyString(), anyString())).thenReturn(false);
 
         assertThatThrownBy(() -> authService.login(loginMockDto))
-                .isInstanceOf(UserNotFoundException.class);
+                .isInstanceOf(ClientSideException.class);
     }
 
     @Test

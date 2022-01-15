@@ -14,21 +14,6 @@ import java.util.Set;
 
 @ControllerAdvice
 public class GlobalControllerExceptionHandler {
-
-    @ExceptionHandler({UserAlreadyExistException.class})
-    public ResponseEntity<ErrorMessage> handleUserAlreadyExistException(UserAlreadyExistException e) {
-        ErrorMessage message = new ErrorMessage(e.getMessage());
-
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(message);
-    }
-
-    @ExceptionHandler({UserNotFoundException.class})
-    public ResponseEntity<ErrorMessage> handleUserNotFoundException(UserNotFoundException e) {
-        ErrorMessage message = new ErrorMessage(e.getMessage());
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(message);
-    }
-
     @ExceptionHandler({MethodArgumentNotValidException.class})
     public ResponseEntity<ErrorMessage> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         BindingResult result = e.getBindingResult();
@@ -52,5 +37,12 @@ public class GlobalControllerExceptionHandler {
         ErrorMessage message = new ErrorMessage(e.getMessage());
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(message);
+    }
+
+    @ExceptionHandler({ClientSideException.class})
+    public ResponseEntity<ErrorMessage> handleClientSideException(ClientSideException e) {
+        ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+
+        return ResponseEntity.status(e.getStatus()).body(errorMessage);
     }
 }
