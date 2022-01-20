@@ -9,7 +9,7 @@ import javax.validation.constraints.Null;
 import java.io.IOException;
 
 @Data
-public class CreationProjectDTO {
+public class CreationProjectRequestDTO {
     @NotBlank(message = "Wrong name. Name must not be empty")
     private String name;
     @NotBlank(message = "Wrong description. Description must not be empty")
