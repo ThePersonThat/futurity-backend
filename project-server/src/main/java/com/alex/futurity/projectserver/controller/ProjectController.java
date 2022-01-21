@@ -1,13 +1,16 @@
 package com.alex.futurity.projectserver.controller;
 
 import com.alex.futurity.projectserver.dto.CreationProjectRequestDTO;
+import com.alex.futurity.projectserver.dto.ProjectPreviewRequestDTO;
 import com.alex.futurity.projectserver.dto.ProjectsResponseDTO;
 import com.alex.futurity.projectserver.service.ProjectManagerService;
 import com.alex.futurity.projectserver.validation.FileNotEmpty;
 import com.alex.futurity.projectserver.validation.FileSize;
 import com.alex.futurity.projectserver.validation.FileType;
 import lombok.AllArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -38,5 +41,14 @@ public class ProjectController {
     @GetMapping("/{id}/projects")
     public ResponseEntity<ProjectsResponseDTO> getProjects(@PathVariable long id) {
         return ResponseEntity.ok(projectService.getProjects(id));
+    }
+
+    @GetMapping(value = "/{id}/preview/{previewId}", produces = {
+            MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE
+    })
+    public ResponseEntity<Resource> getPreview(@PathVariable long id, @PathVariable long previewId) {
+        ProjectPreviewRequestDTO request = new ProjectPreviewRequestDTO(id, previewId);
+
+        return ResponseEntity.ok(projectService.findProjectPreview(request));
     }
 }

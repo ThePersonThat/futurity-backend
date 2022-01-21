@@ -12,6 +12,6 @@ public class ProjectDTO {
     public ProjectDTO(Project project) {
         this.name = project.getName();
         this.description = project.getDescription();
-        this.previewUrl = "/preview/" + project.getName();
+        this.previewUrl = "/preview/" + project.getId();
     }
 }
