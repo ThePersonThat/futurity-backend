@@ -26,9 +26,9 @@ public class ProjectController {
 
     @PostMapping("/{id}/create")
     @ResponseStatus(HttpStatus.CREATED)
-    public void createProject(@PathVariable long id, @RequestPart @FileNotEmpty(message = "Avatar must not be empty")
+    public void createProject(@PathVariable long id, @RequestPart @FileNotEmpty(message = "Preview must not be empty")
     @FileSize(max = 5 * (1024 * 1024),
-            message = "Avatar is too large. Max size 5MB")
+            message = "Preview is too large. Max size 5MB")
     @FileType(types = {"jpeg", "jpg", "png", "gif"},
             message = "Wrong image type. " +
                     "Must be one of the following: .jpeg, .png, .gif") MultipartFile preview, @Valid @RequestPart CreationProjectRequestDTO project) {

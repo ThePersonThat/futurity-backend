@@ -1,9 +1,12 @@
 package com.alex.futurity.projectserver.dto;
 
 import com.alex.futurity.projectserver.entity.Project;
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 
-@Data
+@Getter
+@NoArgsConstructor
 public class ProjectDTO {
     private String name;
     private String description;
