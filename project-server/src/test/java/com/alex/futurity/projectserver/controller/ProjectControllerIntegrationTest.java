@@ -2,6 +2,7 @@ package com.alex.futurity.projectserver.controller;
 
 import com.alex.futurity.projectserver.ProjectServerApplication;
 import com.alex.futurity.projectserver.dto.CreationProjectRequestDTO;
+import com.alex.futurity.projectserver.dto.CreationProjectResponseDTO;
 import com.alex.futurity.projectserver.dto.ProjectDTO;
 import com.alex.futurity.projectserver.dto.ProjectsResponseDTO;
 import com.alex.futurity.projectserver.entity.Project;
@@ -18,7 +19,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
@@ -70,12 +70,14 @@ class ProjectControllerIntegrationTest {
     void testCreateProject() {
         Long id = 1L;
         CreationProjectRequestDTO dto = new CreationProjectRequestDTO(validName, validDescription, null, null);
-        ResponseEntity<String> response =
-                restTemplate.postForEntity(url + "/" + id + "/create", buildMultiPartHttpEntity(dto, validPreview), String.class);
+        ResponseEntity<CreationProjectResponseDTO> response =
+                restTemplate.postForEntity(url + "/" + id + "/create", buildMultiPartHttpEntity(dto, validPreview),
+                        CreationProjectResponseDTO.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Project project = getProject();
 
+        assertThat(project.getId()).isEqualTo(response.getBody().getProjectId());
         assertThat(project.getName()).isEqualTo(validName);
         assertThat(project.getUserId()).isEqualTo(id);
         assertThat(project.getDescription()).isEqualTo(validDescription);
@@ -124,6 +126,7 @@ class ProjectControllerIntegrationTest {
         List<ProjectDTO> projects = response.getBody().getProjects();
         assertThat(projects).hasSize(1);
         ProjectDTO projectDTO = projects.get(0);
+        assertThat(projectDTO.getId()).isEqualTo(id);
         assertThat(projectDTO.getDescription()).isEqualTo(validDescription);
         assertThat(projectDTO.getName()).isEqualTo(validName);
         assertThat(projectDTO.getPreviewUrl()).isEqualTo("/preview/" + projectId);
@@ -158,6 +161,35 @@ class ProjectControllerIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).isEqualTo(new ErrorMessage("The project is associated with such data does not exist"));
+    }
+
+    @Test
+    @SneakyThrows
+    @DisplayName("Should delete project if it exists")
+    void testDeleteProject() {
+        long id = 1L;
+        Project project = new Project(id, validName, validDescription, validPreview.getBytes());
+        createProject(project);
+        long projectId = getProject().getId();
+
+        ResponseEntity<String> response =
+                restTemplate.exchange(url + "/" + id + "/delete/" + projectId, HttpMethod.DELETE, null, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        List<Project> projects = projectRepository.findAll();
+        assertThat(projects).hasSize(0);
+    }
+
+    @Test
+    @SneakyThrows
+    @DisplayName("Should return an error if a project is not found")
+    void testDeleteNotExistingProject() {
+        ResponseEntity<ErrorMessage> response =
+                restTemplate.exchange(url + "/1/delete/1", HttpMethod.DELETE, null, ErrorMessage.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+        assertThat(response.getBody())
+                .isEqualTo(new ErrorMessage("The project is associated with such data does not exist"));
     }
 
     private static Stream<Arguments> getInvalidProjectRequests() {

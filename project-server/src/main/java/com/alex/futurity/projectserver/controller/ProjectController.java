@@ -1,8 +1,6 @@
 package com.alex.futurity.projectserver.controller;
 
-import com.alex.futurity.projectserver.dto.CreationProjectRequestDTO;
-import com.alex.futurity.projectserver.dto.ProjectPreviewRequestDTO;
-import com.alex.futurity.projectserver.dto.ProjectsResponseDTO;
+import com.alex.futurity.projectserver.dto.*;
 import com.alex.futurity.projectserver.service.ProjectManagerService;
 import com.alex.futurity.projectserver.validation.FileNotEmpty;
 import com.alex.futurity.projectserver.validation.FileSize;
@@ -25,8 +23,7 @@ public class ProjectController {
     private final ProjectManagerService projectService;
 
     @PostMapping("/{id}/create")
-    @ResponseStatus(HttpStatus.CREATED)
-    public void createProject(@PathVariable long id, @RequestPart @FileNotEmpty(message = "Preview must not be empty")
+    public ResponseEntity<CreationProjectResponseDTO> createProject(@PathVariable long id, @RequestPart @FileNotEmpty(message = "Preview must not be empty")
     @FileSize(max = 5 * (1024 * 1024),
             message = "Preview is too large. Max size 5MB")
     @FileType(types = {"jpeg", "jpg", "png", "gif"},
@@ -35,7 +32,7 @@ public class ProjectController {
         project.setUserId(id);
         project.setPreview(preview);
 
-        projectService.createProject(project);
+        return new ResponseEntity<>(projectService.createProject(project), HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}/projects")
@@ -50,5 +47,13 @@ public class ProjectController {
         ProjectPreviewRequestDTO request = new ProjectPreviewRequestDTO(id, previewId);
 
         return ResponseEntity.ok(projectService.findProjectPreview(request));
+    }
+
+    @DeleteMapping("/{id}/delete/{projectId}")
+    @ResponseStatus(HttpStatus.OK)
+    public void deleteProject(@PathVariable long id, @PathVariable long projectId) {
+        DeleteProjectRequestDTO dto = new DeleteProjectRequestDTO(id, projectId);
+
+        projectService.deleteProject(dto);
     }
 }

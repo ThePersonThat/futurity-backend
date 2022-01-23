@@ -1,5 +1,6 @@
 package com.alex.futurity.projectserver.service;
 
+import com.alex.futurity.projectserver.dto.DeleteProjectRequestDTO;
 import com.alex.futurity.projectserver.dto.ProjectPreviewRequestDTO;
 import com.alex.futurity.projectserver.entity.Project;
 
@@ -10,4 +11,5 @@ public interface ProjectService {
     boolean hasUserProjectWithName(String name, long userId);
     List<Project> getProjectsForUser(long userId);
     byte[] getPreviewForUserProject(ProjectPreviewRequestDTO dto);
+    int deleteProject(DeleteProjectRequestDTO dto);
 }

@@ -17,7 +17,7 @@ public class Project {
     @Column(nullable = false)
     private Long userId;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @NotBlank(message = "Wrong name. Name must not be empty")
     private String name;
 

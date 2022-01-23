@@ -1,9 +1,6 @@
 package com.alex.futurity.projectserver.service.impl;
 
-import com.alex.futurity.projectserver.dto.CreationProjectRequestDTO;
-import com.alex.futurity.projectserver.dto.ProjectDTO;
-import com.alex.futurity.projectserver.dto.ProjectPreviewRequestDTO;
-import com.alex.futurity.projectserver.dto.ProjectsResponseDTO;
+import com.alex.futurity.projectserver.dto.*;
 import com.alex.futurity.projectserver.entity.Project;
 import com.alex.futurity.projectserver.exception.ClientSideException;
 import com.alex.futurity.projectserver.service.ProjectManagerService;
@@ -28,7 +25,7 @@ public class ProjectManagerServiceImpl implements ProjectManagerService {
 
     @Override
     @Transactional
-    public void createProject(CreationProjectRequestDTO dto) {
+    public CreationProjectResponseDTO createProject(CreationProjectRequestDTO dto) {
         try {
             if (projectService.hasUserProjectWithName(dto.getName(), dto.getUserId())) {
                 throw new ClientSideException("Project with such name exists", HttpStatus.CONFLICT);
@@ -37,6 +34,7 @@ public class ProjectManagerServiceImpl implements ProjectManagerService {
             Project project = dto.toProject();
             projectService.saveProject(project);
             log.info("The project with name {} has been saved for user with {} id", project.getName(), project.getUserId());
+            return new CreationProjectResponseDTO(project.getId());
         } catch (IOException e) {
             log.warn("The preview {} cannot be read: {}", dto.getPreview(), e.getMessage());
             throw new IllegalStateException("The preview cannot be read");
@@ -58,5 +56,15 @@ public class ProjectManagerServiceImpl implements ProjectManagerService {
         byte[] preview = projectService.getPreviewForUserProject(dto);
 
         return new ByteArrayResource(preview);
+    }
+
+    @Override
+    @Transactional
+    public void deleteProject(DeleteProjectRequestDTO dto) {
+        int deleted = projectService.deleteProject(dto);
+
+        if (deleted == 0) {
+            throw new ClientSideException("The project is associated with such data does not exist", HttpStatus.NOT_FOUND);
+        }
     }
 }

@@ -1,5 +1,6 @@
 package com.alex.futurity.projectserver.service.impl;
 
+import com.alex.futurity.projectserver.dto.DeleteProjectRequestDTO;
 import com.alex.futurity.projectserver.dto.ProjectPreviewRequestDTO;
 import com.alex.futurity.projectserver.entity.Project;
 import com.alex.futurity.projectserver.exception.ClientSideException;
@@ -38,5 +39,10 @@ public class ProjectServiceImpl implements ProjectService {
         });
 
         return project.getPreview();
+    }
+
+    @Override
+    public int deleteProject(DeleteProjectRequestDTO dto) {
+        return projectRepo.deleteProjectByIdAndUserId(dto.getProjectId(), dto.getUserId());
     }
 }

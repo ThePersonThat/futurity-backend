@@ -1,12 +1,11 @@
 package com.alex.futurity.projectserver.service;
 
-import com.alex.futurity.projectserver.dto.CreationProjectRequestDTO;
-import com.alex.futurity.projectserver.dto.ProjectPreviewRequestDTO;
-import com.alex.futurity.projectserver.dto.ProjectsResponseDTO;
+import com.alex.futurity.projectserver.dto.*;
 import org.springframework.core.io.Resource;
 
 public interface ProjectManagerService {
-    void createProject(CreationProjectRequestDTO dto);
+    CreationProjectResponseDTO createProject(CreationProjectRequestDTO dto);
     ProjectsResponseDTO getProjects(long id);
     Resource findProjectPreview(ProjectPreviewRequestDTO dto);
+    void deleteProject(DeleteProjectRequestDTO dto);
 }
