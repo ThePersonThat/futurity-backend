@@ -23,7 +23,7 @@ public class ProjectController {
     private final ProjectManagerService projectService;
 
     @PostMapping("/{id}/create")
-    public ResponseEntity<CreationProjectResponseDTO> createProject(@PathVariable long id, @RequestPart @FileNotEmpty(message = "Preview must not be empty")
+    public ResponseEntity<IdResponse> createProject(@PathVariable long id, @RequestPart @FileNotEmpty(message = "Preview must not be empty")
     @FileSize(max = 5 * (1024 * 1024),
             message = "Preview is too large. Max size 5MB")
     @FileType(types = {"jpeg", "jpg", "png", "gif"},
@@ -36,7 +36,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{id}/projects")
-    public ResponseEntity<ProjectsResponseDTO> getProjects(@PathVariable long id) {
+    public ResponseEntity<ListResponse<ProjectDTO>> getProjects(@PathVariable long id) {
         return ResponseEntity.ok(projectService.getProjects(id));
     }
 
@@ -44,7 +44,7 @@ public class ProjectController {
             MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE
     })
     public ResponseEntity<Resource> getPreview(@PathVariable long id, @PathVariable long previewId) {
-        ProjectPreviewRequestDTO request = new ProjectPreviewRequestDTO(id, previewId);
+        TwoIdRequestDTO request = new TwoIdRequestDTO(id, previewId);
 
         return ResponseEntity.ok(projectService.findProjectPreview(request));
     }
@@ -52,7 +52,7 @@ public class ProjectController {
     @DeleteMapping("/{id}/delete/{projectId}")
     @ResponseStatus(HttpStatus.OK)
     public void deleteProject(@PathVariable long id, @PathVariable long projectId) {
-        DeleteProjectRequestDTO dto = new DeleteProjectRequestDTO(id, projectId);
+        TwoIdRequestDTO dto = new TwoIdRequestDTO(id, projectId);
 
         projectService.deleteProject(dto);
     }

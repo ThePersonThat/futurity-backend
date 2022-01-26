@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class ProjectPreviewRequestDTO {
-    private long userId;
-    private long reviewId;
+public class TwoIdRequestDTO {
+    private long firstId;
+    private long secondId;
 }

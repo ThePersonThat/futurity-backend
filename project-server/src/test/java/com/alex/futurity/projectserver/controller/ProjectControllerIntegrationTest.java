@@ -2,9 +2,9 @@ package com.alex.futurity.projectserver.controller;
 
 import com.alex.futurity.projectserver.ProjectServerApplication;
 import com.alex.futurity.projectserver.dto.CreationProjectRequestDTO;
-import com.alex.futurity.projectserver.dto.CreationProjectResponseDTO;
+import com.alex.futurity.projectserver.dto.IdResponse;
+import com.alex.futurity.projectserver.dto.ListResponse;
 import com.alex.futurity.projectserver.dto.ProjectDTO;
-import com.alex.futurity.projectserver.dto.ProjectsResponseDTO;
 import com.alex.futurity.projectserver.entity.Project;
 import com.alex.futurity.projectserver.exception.ErrorMessage;
 import com.alex.futurity.projectserver.repo.ProjectRepository;
@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.annotation.DirtiesContext;
@@ -70,14 +71,14 @@ class ProjectControllerIntegrationTest {
     void testCreateProject() {
         Long id = 1L;
         CreationProjectRequestDTO dto = new CreationProjectRequestDTO(validName, validDescription, null, null);
-        ResponseEntity<CreationProjectResponseDTO> response =
+        ResponseEntity<IdResponse> response =
                 restTemplate.postForEntity(url + "/" + id + "/create", buildMultiPartHttpEntity(dto, validPreview),
-                        CreationProjectResponseDTO.class);
+                        IdResponse.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Project project = getProject();
 
-        assertThat(project.getId()).isEqualTo(response.getBody().getProjectId());
+        assertThat(project.getId()).isEqualTo(response.getBody().getId());
         assertThat(project.getName()).isEqualTo(validName);
         assertThat(project.getUserId()).isEqualTo(id);
         assertThat(project.getDescription()).isEqualTo(validDescription);
@@ -119,11 +120,12 @@ class ProjectControllerIntegrationTest {
         Project project = new Project(id, validName, validDescription, validPreview.getBytes());
         createProject(project);
         long projectId = getProject().getId();
-        ResponseEntity<ProjectsResponseDTO> response =
-                restTemplate.getForEntity(url + "/" + id + "/projects", ProjectsResponseDTO.class);
+        ResponseEntity<ListResponse<ProjectDTO>> response =
+                restTemplate.exchange(url + "/" + id + "/projects", HttpMethod.GET, null,
+                        new ParameterizedTypeReference<>() {});
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<ProjectDTO> projects = response.getBody().getProjects();
+        List<ProjectDTO> projects = (List<ProjectDTO>) response.getBody().getValues();
         assertThat(projects).hasSize(1);
         ProjectDTO projectDTO = projects.get(0);
         assertThat(projectDTO.getId()).isEqualTo(id);

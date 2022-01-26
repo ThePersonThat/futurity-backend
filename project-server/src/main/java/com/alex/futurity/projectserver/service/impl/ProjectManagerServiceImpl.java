@@ -25,7 +25,7 @@ public class ProjectManagerServiceImpl implements ProjectManagerService {
 
     @Override
     @Transactional
-    public CreationProjectResponseDTO createProject(CreationProjectRequestDTO dto) {
+    public IdResponse createProject(CreationProjectRequestDTO dto) {
         try {
             if (projectService.hasUserProjectWithName(dto.getName(), dto.getUserId())) {
                 throw new ClientSideException("Project with such name exists", HttpStatus.CONFLICT);
@@ -34,7 +34,7 @@ public class ProjectManagerServiceImpl implements ProjectManagerService {
             Project project = dto.toProject();
             projectService.saveProject(project);
             log.info("The project with name {} has been saved for user with {} id", project.getName(), project.getUserId());
-            return new CreationProjectResponseDTO(project.getId());
+            return new IdResponse(project.getId());
         } catch (IOException e) {
             log.warn("The preview {} cannot be read: {}", dto.getPreview(), e.getMessage());
             throw new IllegalStateException("The preview cannot be read");
@@ -43,25 +43,25 @@ public class ProjectManagerServiceImpl implements ProjectManagerService {
 
     @Override
     @Transactional
-    public ProjectsResponseDTO getProjects(long id) {
+    public ListResponse<ProjectDTO> getProjects(long id) {
         List<Project> projects = projectService.getProjectsForUser(id);
         List<ProjectDTO> dtos = projects.stream().map(ProjectDTO::new).collect(Collectors.toList());
 
-        return new ProjectsResponseDTO(dtos);
+        return new ListResponse<>(dtos);
     }
 
     @Override
     @Transactional
-    public Resource findProjectPreview(ProjectPreviewRequestDTO dto) {
-        byte[] preview = projectService.getPreviewForUserProject(dto);
+    public Resource findProjectPreview(TwoIdRequestDTO dto) {
+        byte[] preview = projectService.getPreviewForUserProject(dto.getSecondId(), dto.getFirstId());
 
         return new ByteArrayResource(preview);
     }
 
     @Override
     @Transactional
-    public void deleteProject(DeleteProjectRequestDTO dto) {
-        int deleted = projectService.deleteProject(dto);
+    public void deleteProject(TwoIdRequestDTO dto) {
+        int deleted = projectService.deleteProject(dto.getSecondId(), dto.getFirstId());
 
         if (deleted == 0) {
             throw new ClientSideException("The project is associated with such data does not exist", HttpStatus.NOT_FOUND);

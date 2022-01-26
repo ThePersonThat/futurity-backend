@@ -1,7 +1,5 @@
 package com.alex.futurity.projectserver.service.impl;
 
-import com.alex.futurity.projectserver.dto.DeleteProjectRequestDTO;
-import com.alex.futurity.projectserver.dto.ProjectPreviewRequestDTO;
 import com.alex.futurity.projectserver.entity.Project;
 import com.alex.futurity.projectserver.exception.ClientSideException;
 import com.alex.futurity.projectserver.repo.ProjectRepository;
@@ -33,16 +31,21 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public byte[] getPreviewForUserProject(ProjectPreviewRequestDTO dto) {
-        Project project = projectRepo.findByIdAndUserId(dto.getReviewId(), dto.getUserId()).orElseThrow(() -> {
-            throw new ClientSideException("The project is associated with such data does not exist", HttpStatus.NOT_FOUND);
-        });
+    public byte[] getPreviewForUserProject(long id, long userId) {
+        Project project = findByIdAndUserId(id, userId);
 
         return project.getPreview();
     }
 
     @Override
-    public int deleteProject(DeleteProjectRequestDTO dto) {
-        return projectRepo.deleteProjectByIdAndUserId(dto.getProjectId(), dto.getUserId());
+    public int deleteProject(long id, long userId) {
+        return projectRepo.deleteProjectByIdAndUserId(id, userId);
+    }
+
+    @Override
+    public Project findByIdAndUserId(long id, long userId) {
+        return projectRepo.findByIdAndUserId(id, userId).orElseThrow(() -> new ClientSideException(
+                "The project is associated with such data does not exist", HttpStatus.NOT_FOUND)
+        );
     }
 }

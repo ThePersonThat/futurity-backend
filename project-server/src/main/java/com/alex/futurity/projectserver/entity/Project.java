@@ -5,6 +5,7 @@ import lombok.*;
 import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import java.util.List;
 
 @Entity
 @Getter
@@ -28,6 +29,10 @@ public class Project {
     @NotNull(message = "Project preview must not be null")
     @Lob
     private byte[] preview;
+
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "id")
+    private List<ProjectColumn> columns;
 
     public Project(Long userId, String name, String description, byte[] preview) {
         this.userId = userId;

@@ -4,8 +4,8 @@ import com.alex.futurity.projectserver.dto.*;
 import org.springframework.core.io.Resource;
 
 public interface ProjectManagerService {
-    CreationProjectResponseDTO createProject(CreationProjectRequestDTO dto);
-    ProjectsResponseDTO getProjects(long id);
-    Resource findProjectPreview(ProjectPreviewRequestDTO dto);
-    void deleteProject(DeleteProjectRequestDTO dto);
+    IdResponse createProject(CreationProjectRequestDTO dto);
+    ListResponse<ProjectDTO> getProjects(long id);
+    Resource findProjectPreview(TwoIdRequestDTO dto);
+    void deleteProject(TwoIdRequestDTO dto);
 }
