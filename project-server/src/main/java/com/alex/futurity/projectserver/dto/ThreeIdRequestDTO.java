@@ -5,7 +5,8 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class TwoIdRequestDTO {
+public class ThreeIdRequestDTO {
     private final long firstId;
     private final long secondId;
+    private final long thirdId;
 }

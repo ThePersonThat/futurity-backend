@@ -6,6 +6,7 @@ import javax.persistence.*;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -30,8 +31,7 @@ public class Project {
     @Lob
     private byte[] preview;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "id")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "project")
     private List<ProjectColumn> columns;
 
     public Project(Long userId, String name, String description, byte[] preview) {
@@ -39,5 +39,13 @@ public class Project {
         this.name = name;
         this.description = description;
         this.preview = preview;
+    }
+
+    public boolean removeColumn(ProjectColumn column) {
+        return columns.remove(column);
+    }
+
+    public void addColumn(ProjectColumn column) {
+        columns.add(column);
     }
 }
