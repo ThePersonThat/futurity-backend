@@ -6,4 +6,5 @@ public interface ColumnManagerService {
     IdResponse createColumn(CreationColumnRequestDTO request);
     ListResponse<ColumnDTO> getColumns(TwoIdRequestDTO request);
     void deleteColumn(ThreeIdRequestDTO request);
+    void changeIndexColumn(ChangeIndexColumnRequestDTO request);
 }

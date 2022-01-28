@@ -41,11 +41,7 @@ public class Project {
         this.preview = preview;
     }
 
-    public boolean removeColumn(ProjectColumn column) {
-        return columns.remove(column);
-    }
-
-    public void addColumn(ProjectColumn column) {
-        columns.add(column);
+    public Integer getLastColumnIndex() {
+        return columns.size() + 1;
     }
 }

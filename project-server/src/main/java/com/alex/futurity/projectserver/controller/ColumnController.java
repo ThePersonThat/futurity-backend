@@ -16,27 +16,36 @@ import javax.validation.Valid;
 public class ColumnController {
     private final ColumnManagerService columnService;
 
-    @PostMapping("/{id}/column/{projectId}/create")
-    public ResponseEntity<IdResponse> createColumn(@PathVariable long id, @PathVariable long projectId,
+    @PostMapping("/{userId}/column/{projectId}/create")
+    public ResponseEntity<IdResponse> createColumn(@PathVariable long userId, @PathVariable long projectId,
                                                    @Valid @RequestBody CreationColumnRequestDTO request) {
-        request.setUserId(id);
+        request.setUserId(userId);
         request.setProjectId(projectId);
 
         return new ResponseEntity<>(columnService.createColumn(request), HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}/column/{projectId}")
-    public ResponseEntity<ListResponse<ColumnDTO>> getColumns(@PathVariable long id, @PathVariable long projectId) {
-        TwoIdRequestDTO request = new TwoIdRequestDTO(id, projectId);
+    @GetMapping("/{userId}/column/{projectId}")
+    public ResponseEntity<ListResponse<ColumnDTO>> getColumns(@PathVariable long userId, @PathVariable long projectId) {
+        TwoIdRequestDTO request = new TwoIdRequestDTO(userId, projectId);
 
         return ResponseEntity.ok(columnService.getColumns(request));
     }
 
-    @DeleteMapping("/{id}/column/{projectId}/delete/{columnId}")
+    @DeleteMapping("/{userId}/column/{projectId}/delete/{columnId}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteColumn(@PathVariable long id, @PathVariable long projectId, @PathVariable long columnId) {
-        ThreeIdRequestDTO request = new ThreeIdRequestDTO(id, projectId, columnId);
+    public void deleteColumn(@PathVariable long userId, @PathVariable long projectId, @PathVariable long columnId) {
+        ThreeIdRequestDTO request = new ThreeIdRequestDTO(userId, projectId, columnId);
 
         columnService.deleteColumn(request);
+    }
+
+    @PatchMapping("/{userId}/column/{projectId}/index/change")
+    public void changeIndexColumn(@PathVariable long userId, @PathVariable long projectId,
+                                  @Valid @RequestBody ChangeIndexColumnRequestDTO request) {
+        request.setUserId(userId);
+        request.setProjectId(projectId);
+
+        columnService.changeIndexColumn(request);
     }
 }
