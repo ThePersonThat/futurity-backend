@@ -26,4 +26,10 @@ public interface ColumnRepository extends JpaRepository<ProjectColumn, Long> {
     @Query("UPDATE ProjectColumn p SET p.index = p.index + 1 WHERE p.index <= ?1 AND p.index >= ?2 " +
             "AND p.id <> ?3 AND p.project.id = ?4")
     void shiftForward(int from, int to, long exceptId, long projectId);
+
+    Optional<ProjectColumn> findByIdAndProjectIdAndProjectUserId(long columnId, long projectId, long userId);
+
+    Optional<ProjectColumn> findProjectColumnByIndexAndProjectId(int columnId, long projectId);
+
+    void deleteProjectColumnByIndexAndProjectId(int columnIndex, long projectId);
 }
