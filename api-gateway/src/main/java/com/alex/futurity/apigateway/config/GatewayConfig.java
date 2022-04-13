@@ -14,6 +14,8 @@ public class GatewayConfig {
     private String authorizationServer;
     @Value("${user-server}")
     private String userServer;
+    @Value("${project-server}")
+    private String projectServer;
     private final JwtFilter filter;
     private final UserServerRequestChanger requestChanger;
 
@@ -36,6 +38,12 @@ public class GatewayConfig {
                             return f;
                         })
                         .uri(userServer))
+                .route(r -> r.path("/project/**").filters(f -> {
+                    f.filter(filter);
+                    f.filter(requestChanger);
+                    f.rewritePath("/project/(?<segment>.*)", "/${segment}/");
+                    return f;
+                }).uri(projectServer))
                 .build();
     }
 }
