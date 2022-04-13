@@ -26,8 +26,15 @@ public class ColumnServiceImpl implements ColumnService {
     }
 
     @Override
+    public ProjectColumn findColumnByProjectColumnIndexAndProjectId(long columnIndex, long projectId) {
+        return columnRepo.findProjectColumnByIndexAndProjectId((int) columnIndex, projectId).orElseThrow( () -> {
+            throw new ClientSideException("Column with index " + columnIndex + " and project id: " + projectId + " is not found", HttpStatus.NOT_FOUND);
+        });
+    }
+
+    @Override
     public void deleteColumn(ProjectColumn column) {
-        columnRepo.delete(column);
+        columnRepo.deleteProjectColumnByIndexAndProjectId(column.getIndex(), column.getProject().getId());
     }
 
     @Override
@@ -51,7 +58,7 @@ public class ColumnServiceImpl implements ColumnService {
     @Override
     public ProjectColumn findColumn(long columnId, long projectId, long userId) {
         return columnRepo.findByIdAndProjectIdAndProjectUserId(columnId, projectId, userId).orElseThrow(() -> {
-                    throw new ClientSideException("The task is associated with such data does not exist", HttpStatus.NOT_FOUND);
+            throw new ClientSideException("The task is associated with such data does not exist", HttpStatus.NOT_FOUND);
         });
     }
 }

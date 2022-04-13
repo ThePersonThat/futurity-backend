@@ -38,7 +38,7 @@ public class ColumnManagerServiceImpl implements ColumnManagerService {
     public ListResponse<ColumnDTO> getColumns(TwoIdRequestDTO request) {
         long userId = request.getFirstId();
         long projectId = request.getSecondId();
-        Project project = projectService.findByIdAndUserId(userId, projectId);
+        Project project = projectService.findByIdAndUserId(projectId, userId);
         List<ProjectColumn> columns = project.getColumns();
         List<ColumnDTO> dtos = columns.stream()
                 .map(ColumnDTO::new)
@@ -51,8 +51,9 @@ public class ColumnManagerServiceImpl implements ColumnManagerService {
     @Override
     @Transactional
     public void deleteColumn(ThreeIdRequestDTO request) {
-        Project project = projectService.findByIdAndUserId(request.getSecondId(), request.getFirstId());
-        ProjectColumn column = columnService.findColumnById(request.getThirdId());
+        long projectId = request.getSecondId();
+        Project project = projectService.findByIdAndUserId(projectId, request.getFirstId());
+        ProjectColumn column = columnService.findColumnByProjectColumnIndexAndProjectId(projectId, request.getThirdId());
 
         if (project.getId().equals(column.getProject().getId())) {
             int index = column.getIndex();
@@ -66,12 +67,11 @@ public class ColumnManagerServiceImpl implements ColumnManagerService {
     @Override
     @Transactional
     public void changeIndexColumn(ChangeIndexColumnRequestDTO request) {
-        Project project = projectService.findByIdAndUserId(request.getUserId(), request.getProjectId());
+        Project project = projectService.findByIdAndUserId(request.getProjectId(), request.getUserId());
 
         if (project.getColumns().size() + 1 < request.getTo()) {
             throw new ClientSideException("Columns out of bounds", HttpStatus.BAD_REQUEST);
         }
-
         columnService.changeColumnIndex(request.getFrom(), request.getTo(), project.getId());
     }
 }
