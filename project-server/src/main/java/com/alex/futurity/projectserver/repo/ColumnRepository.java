@@ -28,8 +28,4 @@ public interface ColumnRepository extends JpaRepository<ProjectColumn, Long> {
     void shiftForward(int from, int to, long exceptId, long projectId);
 
     Optional<ProjectColumn> findByIdAndProjectIdAndProjectUserId(long columnId, long projectId, long userId);
-
-    Optional<ProjectColumn> findProjectColumnByIndexAndProjectId(int columnId, long projectId);
-
-    void deleteProjectColumnByIndexAndProjectId(int columnIndex, long projectId);
 }

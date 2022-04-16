@@ -1,15 +1,14 @@
 package com.alex.futurity.projectserver.service;
 
 
-import com.alex.futurity.projectserver.entity.Project;
+import com.alex.futurity.projectserver.dto.*;
+import org.springframework.core.io.Resource;
 
 import java.util.List;
 
 public interface ProjectService {
-    void saveProject(Project project);
-    boolean hasUserProjectWithName(String name, long userId);
-    List<Project> getProjectsForUser(long userId);
-    byte[] getPreviewForUserProject(long id, long userId);
-    int deleteProject(long id, long userId);
-    Project findByIdAndUserId(long id, long userId);
+    long createProject(CreationProjectRequestDTO dto);
+    List<ProjectDTO> getProjects(long userId);
+    Resource findProjectPreview(long userId, long projectId);
+    void deleteProject(long userId, long projectId);
 }

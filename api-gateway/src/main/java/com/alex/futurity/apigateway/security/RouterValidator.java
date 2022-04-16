@@ -8,7 +8,7 @@ import java.util.List;
 @Component
 public class RouterValidator {
     private final List<String> endPoints = List.of(
-        "user"
+        "user", "project"
     );
 
     public boolean isSecured(ServerHttpRequest request) {

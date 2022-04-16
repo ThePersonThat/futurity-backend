@@ -1,7 +1,7 @@
 package com.alex.futurity.projectserver.controller;
 
 import com.alex.futurity.projectserver.dto.*;
-import com.alex.futurity.projectserver.service.ProjectManagerService;
+import com.alex.futurity.projectserver.service.ProjectService;
 import com.alex.futurity.projectserver.validation.FileNotEmpty;
 import com.alex.futurity.projectserver.validation.FileSize;
 import com.alex.futurity.projectserver.validation.FileType;
@@ -15,45 +15,43 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
 
 @Validated
 @RestController
 @AllArgsConstructor
 public class ProjectController {
-    private final ProjectManagerService projectService;
+    private final ProjectService projectService;
 
-    @PostMapping("/{id}/create")
-    public ResponseEntity<IdResponse> createProject(@PathVariable long id, @RequestPart @FileNotEmpty(message = "Preview must not be empty")
+    @PostMapping("/{userId}/create")
+    @ResponseStatus(HttpStatus.CREATED)
+    public long createProject(@PathVariable long userId, @RequestPart @FileNotEmpty(message = "Preview must not be empty")
     @FileSize(max = 5 * (1024 * 1024),
             message = "Preview is too large. Max size 5MB")
     @FileType(types = {"jpeg", "jpg", "png", "gif"},
             message = "Wrong image type. " +
                     "Must be one of the following: .jpeg, .png, .gif") MultipartFile preview, @Valid @RequestPart CreationProjectRequestDTO project) {
-        project.setUserId(id);
+        project.setUserId(userId);
         project.setPreview(preview);
 
-        return new ResponseEntity<>(projectService.createProject(project), HttpStatus.CREATED);
+        return projectService.createProject(project);
     }
 
-    @GetMapping("/{id}/projects")
-    public ResponseEntity<ListResponse<ProjectDTO>> getProjects(@PathVariable long id) {
-        return ResponseEntity.ok(projectService.getProjects(id));
+    @GetMapping("/{userId}/projects")
+    public List<ProjectDTO> getProjects(@PathVariable long userId) {
+        return projectService.getProjects(userId);
     }
 
-    @GetMapping(value = "/{id}/preview/{previewId}", produces = {
+    @GetMapping(value = "/{userId}/preview/{previewId}", produces = {
             MediaType.IMAGE_JPEG_VALUE, MediaType.IMAGE_PNG_VALUE, MediaType.IMAGE_GIF_VALUE
     })
-    public ResponseEntity<Resource> getPreview(@PathVariable long id, @PathVariable long previewId) {
-        TwoIdRequestDTO request = new TwoIdRequestDTO(id, previewId);
-
-        return ResponseEntity.ok(projectService.findProjectPreview(request));
+    public ResponseEntity<Resource> getPreview(@PathVariable long userId, @PathVariable(name = "previewId") long projectId) {
+        return ResponseEntity.ok(projectService.findProjectPreview(userId, projectId));
     }
 
-    @DeleteMapping("/{id}/delete/{projectId}")
+    @DeleteMapping("/{userId}/delete/{projectId}")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteProject(@PathVariable long id, @PathVariable long projectId) {
-        TwoIdRequestDTO dto = new TwoIdRequestDTO(id, projectId);
-
-        projectService.deleteProject(dto);
+    public void deleteProject(@PathVariable long userId, @PathVariable long projectId) {
+        projectService.deleteProject(userId, projectId);
     }
 }

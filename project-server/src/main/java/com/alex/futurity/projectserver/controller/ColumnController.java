@@ -46,6 +46,7 @@ public class ColumnController {
     }
 
     @PatchMapping("/{userId}/column/{projectId}/index/change")
+    @ResponseStatus(HttpStatus.OK)
     public void changeIndexColumn(@PathVariable long userId, @PathVariable long projectId,
                                   @Valid @RequestBody ChangeIndexColumnRequestDTO request) {
         log.info("Handling change  column index request. User id: {}, project id: {}, dto: {}", userId, projectId, request);

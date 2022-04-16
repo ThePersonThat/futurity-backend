@@ -2,8 +2,6 @@ package com.alex.futurity.projectserver.controller;
 
 import com.alex.futurity.projectserver.ProjectServerApplication;
 import com.alex.futurity.projectserver.dto.CreationProjectRequestDTO;
-import com.alex.futurity.projectserver.dto.IdResponse;
-import com.alex.futurity.projectserver.dto.ListResponse;
 import com.alex.futurity.projectserver.dto.ProjectDTO;
 import com.alex.futurity.projectserver.entity.Project;
 import com.alex.futurity.projectserver.exception.ErrorMessage;
@@ -71,14 +69,14 @@ class ProjectControllerIntegrationTest {
     void testCreateProject() {
         Long id = 1L;
         CreationProjectRequestDTO dto = new CreationProjectRequestDTO(validName, validDescription, null, null);
-        ResponseEntity<IdResponse> response =
+        ResponseEntity<Long> response =
                 restTemplate.postForEntity(url + "/" + id + "/create", buildMultiPartHttpEntity(dto, validPreview),
-                        IdResponse.class);
+                        Long.class);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         Project project = getProject();
 
-        assertThat(project.getId()).isEqualTo(response.getBody().getId());
+        assertThat(project.getId()).isEqualTo(response.getBody());
         assertThat(project.getName()).isEqualTo(validName);
         assertThat(project.getUserId()).isEqualTo(id);
         assertThat(project.getDescription()).isEqualTo(validDescription);
@@ -120,12 +118,12 @@ class ProjectControllerIntegrationTest {
         Project project = new Project(id, validName, validDescription, validPreview.getBytes());
         createProject(project);
         long projectId = getProject().getId();
-        ResponseEntity<ListResponse<ProjectDTO>> response =
+        ResponseEntity<List<ProjectDTO>> response =
                 restTemplate.exchange(url + "/" + id + "/projects", HttpMethod.GET, null,
                         new ParameterizedTypeReference<>() {});
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<ProjectDTO> projects = (List<ProjectDTO>) response.getBody().getValues();
+        List<ProjectDTO> projects = response.getBody();
         assertThat(projects).hasSize(1);
         ProjectDTO projectDTO = projects.get(0);
         assertThat(projectDTO.getId()).isEqualTo(id);
