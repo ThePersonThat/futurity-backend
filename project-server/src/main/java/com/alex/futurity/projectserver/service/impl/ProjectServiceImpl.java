@@ -2,6 +2,7 @@ package com.alex.futurity.projectserver.service.impl;
 
 import com.alex.futurity.projectserver.dto.*;
 import com.alex.futurity.projectserver.entity.Project;
+import com.alex.futurity.projectserver.entity.ProjectColumn;
 import com.alex.futurity.projectserver.exception.ClientSideException;
 import com.alex.futurity.projectserver.repo.ProjectRepository;
 import com.alex.futurity.projectserver.service.ProjectService;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -45,9 +47,10 @@ public class ProjectServiceImpl implements ProjectService {
     @Transactional
     public List<ProjectDTO> getProjects(long id) {
         List<Project> projects = projectRepo.findAllByUserId(id);
-        List<ProjectDTO> dtos = projects.stream().map(ProjectDTO::new).collect(Collectors.toList());
 
-        return dtos;
+        return projects.stream()
+                .map(ProjectDTO::fromProject)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -61,20 +64,37 @@ public class ProjectServiceImpl implements ProjectService {
     @Override
     @Transactional
     public void deleteProject(long userId, long projectId) {
-        int deleted = projectRepo.deleteProjectByIdAndUserId(userId, projectId);
+        int deleted = projectRepo.deleteProjectByIdAndUserId(projectId, userId);
 
         if (deleted == 0) {
             throw new ClientSideException("The project is associated with such data does not exist", HttpStatus.NOT_FOUND);
         }
     }
 
-    private boolean hasUserProjectWithName(String name, long userId) {
-        return projectRepo.findByNameAndUserId(name, userId).isPresent();
+    @Override
+    @Transactional
+    public ProjectColumn addColumnToProject(long userId, long projectId, String columnName) {
+        Project project = findByProjectIdAndUserId(projectId, userId);
+        ProjectColumn projectColumn = new ProjectColumn(columnName, project);
+        project.addColumn(projectColumn);
+
+        return projectColumn;
+    }
+
+    @Override
+    public List<ProjectColumn> getColumnsFromProject(long userId, long projectId) {
+        Project project = findByProjectIdAndUserId(projectId, userId);
+
+        return project.getColumns();
     }
 
     private Project findByProjectIdAndUserId(long projectId, long userId) {
         return projectRepo.findByIdAndUserId(projectId, userId).orElseThrow(() -> new ClientSideException(
                 "The project is associated with such data does not exist", HttpStatus.NOT_FOUND)
         );
+    }
+
+    private boolean hasUserProjectWithName(String name, long userId) {
+        return projectRepo.findByNameAndUserId(name, userId).isPresent();
     }
 }

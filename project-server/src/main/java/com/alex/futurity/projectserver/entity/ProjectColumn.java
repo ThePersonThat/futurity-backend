@@ -27,7 +27,7 @@ public class ProjectColumn {
 
     @Column(nullable = false)
     @NotNull(message = "Wrong index number. Number must not be empty")
-    @Min(value = 1, message = "Wrong index number. Index number must start from 1")
+    @Min(value = 0, message = "Wrong index number. Index number must start from 0")
     private Integer index;
 
     @ManyToOne
@@ -37,13 +37,8 @@ public class ProjectColumn {
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "column")
     private List<Task> tasks;
 
-    public ProjectColumn(String name, Integer index, Project project) {
+    public ProjectColumn(String name, Project project) {
         this.name = name;
-        this.index = index;
         this.project = project;
-    }
-
-    public int getLastTaskIndex() {
-        return tasks.size() + 1;
     }
 }
