@@ -1,24 +1,19 @@
 package com.alex.futurity.projectserver.entity;
 
-import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.OnDelete;
-import org.hibernate.annotations.OnDeleteAction;
 
 import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
-import java.util.List;
 
 @Entity
 @Getter
 @Setter
 @NoArgsConstructor
-@EqualsAndHashCode
-public class ProjectColumn {
+public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,20 +28,11 @@ public class ProjectColumn {
     private Integer index;
 
     @ManyToOne
-    @JoinColumn(name = "project_id", nullable = false)
-    private Project project;
+    @JoinColumn(name = "column_id", nullable = false)
+    private ProjectColumn column;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "column")
-    @OnDelete(action = OnDeleteAction.CASCADE)
-    private List<Task> tasks;
-
-    public ProjectColumn(String name, Project project) {
+    public Task(String name, ProjectColumn column) {
         this.name = name;
-        this.project = project;
-    }
-
-    public void addTask(Task task) {
-        task.setIndex(tasks.size());
-        tasks.add(task);
+        this.column = column;
     }
 }

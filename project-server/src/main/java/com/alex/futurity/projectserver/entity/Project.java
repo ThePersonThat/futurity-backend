@@ -35,7 +35,7 @@ public class Project {
     @Basic(fetch = FetchType.LAZY, optional = false)
     private byte[] preview;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY, mappedBy = "project")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY, mappedBy = "project")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<ProjectColumn> columns;
 

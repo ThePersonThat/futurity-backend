@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,13 +78,6 @@ public class ProjectServiceImpl implements ProjectService {
         project.addColumn(projectColumn);
 
         return projectColumn;
-    }
-
-    @Override
-    public List<ProjectColumn> getColumnsFromProject(long userId, long projectId) {
-        Project project = findByProjectIdAndUserId(projectId, userId);
-
-        return project.getColumns();
     }
 
     private Project findByProjectIdAndUserId(long projectId, long userId) {

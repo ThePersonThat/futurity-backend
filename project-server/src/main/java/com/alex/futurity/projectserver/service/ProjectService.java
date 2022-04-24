@@ -13,5 +13,4 @@ public interface ProjectService {
     Resource findProjectPreview(long userId, long projectId);
     void deleteProject(long userId, long projectId);
     ProjectColumn addColumnToProject(long userId, long projectId, String columnName);
-    List<ProjectColumn> getColumnsFromProject(long userId, long projectId);
 }
