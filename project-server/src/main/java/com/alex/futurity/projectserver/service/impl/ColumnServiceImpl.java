@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-
 @Service
 @AllArgsConstructor
 public class ColumnServiceImpl implements ColumnService {
@@ -91,6 +90,17 @@ public class ColumnServiceImpl implements ColumnService {
         Task task = new Task(taskName, column);
         column.addTask(task);
         return task;
+    }
+
+    @Override
+    @Transactional
+    public void changeColumnName(long userId, long projectId, int columnIndex, String columnName) {
+        ProjectColumn column = columnRepo.findProjectColumnByIndexAndProjectUserIdAndProjectId(columnIndex, userId, projectId)
+                .orElseThrow(() -> new ClientSideException(
+                "The column is associated with such data does not exist", HttpStatus.NOT_FOUND)
+        );
+
+        column.setName(columnName);
     }
 
     private List<ProjectColumn> findProjectColumnsForProject(long projectId, long userId, boolean checkSize) {

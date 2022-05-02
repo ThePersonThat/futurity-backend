@@ -1,11 +1,14 @@
 package com.alex.futurity.projectserver.controller;
 
 import com.alex.futurity.projectserver.dto.ChangeTaskIndexRequestDto;
+import com.alex.futurity.projectserver.dto.RequestStringDto;
 import com.alex.futurity.projectserver.service.TaskService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+
+import javax.validation.Valid;
 
 @RestController
 @AllArgsConstructor
@@ -16,11 +19,11 @@ public class TaskController {
     @PostMapping("/{userId}/task/{projectId}/{columnIndex}/create")
     @ResponseStatus(HttpStatus.CREATED)
     public long createTask(@PathVariable long userId, @PathVariable long projectId, @PathVariable int columnIndex,
-                           @RequestParam String taskName) {
+                           @Valid @RequestBody RequestStringDto taskName) {
         log.info("Handling creation task request. User id: {}, project id: {}, column index: {}, name: {}",
-                userId, projectId, columnIndex, taskName);
+                userId, projectId, columnIndex, taskName.getValue());
 
-        return taskService.createTask(userId, projectId, columnIndex, taskName);
+        return taskService.createTask(userId, projectId, columnIndex, taskName.getValue());
     }
 
     @DeleteMapping("/{userId}/task/{projectId}/{columnIndex}/{taskIndex}/delete")
@@ -41,5 +44,15 @@ public class TaskController {
                 projectId, userId, request);
 
         taskService.changeTaskIndex(userId, projectId, request);
+    }
+
+    @PatchMapping("/{userId}/task/{projectId}/{columnIndex}/{taskIndex}/name")
+    @ResponseStatus(HttpStatus.OK)
+    public void changeTaskName(@PathVariable long userId, @PathVariable long projectId, @PathVariable int columnIndex,
+                               @PathVariable int taskIndex, @Valid @RequestBody RequestStringDto taskName) {
+        log.info("Handling changing task name request. User id: {}, project id: {}, column index: {}, task index: {}, task name: {}",
+                userId, projectId, columnIndex, taskIndex, taskName.getValue());
+
+        taskService.changeTaskName(userId, projectId, columnIndex, taskIndex, taskName.getValue());
     }
 }

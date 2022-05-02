@@ -11,4 +11,5 @@ public interface ColumnService {
     void deleteColumn(long userId, long projectId, int columnIndex);
     void changeColumnIndex(long userId, long projectId, int from, int to);
     Task addTaskToColumn(long userId, long projectId, int columnIndex, String taskName);
+    void changeColumnName(long userId, long projectId, int columnIndex, String columnName);
 }

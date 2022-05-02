@@ -1,12 +1,15 @@
 package com.alex.futurity.projectserver.controller;
 
 import com.alex.futurity.projectserver.dto.ProjectColumnDto;
+import com.alex.futurity.projectserver.dto.RequestStringDto;
 import com.alex.futurity.projectserver.service.ColumnService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @RestController
@@ -18,10 +21,10 @@ public class ColumnController {
     @PostMapping("/{userId}/column/{projectId}/create")
     @ResponseStatus(HttpStatus.CREATED)
     public long createColumn(@PathVariable long userId, @PathVariable long projectId,
-                                                   @RequestParam String columnName) {
-        log.info("Handling creation column request. User id: {}, project id: {}, name: {}", userId, projectId, columnName);
+                             @Valid @RequestBody RequestStringDto columnName) {
+        log.info("Handling creation column request. User id: {}, project id: {}, name: {}", userId, projectId, columnName.getValue());
 
-        return columnService.createColumn(userId, projectId, columnName);
+        return columnService.createColumn(userId, projectId, columnName.getValue());
     }
 
     @GetMapping("/{userId}/column/{projectId}")
@@ -48,5 +51,15 @@ public class ColumnController {
                 from, to);
 
         columnService.changeColumnIndex(userId, projectId, from, to);
+    }
+
+    @PatchMapping("/{userId}/column/{projectId}/{columnIndex}/name/")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void changeColumnName(@PathVariable long userId, @PathVariable long projectId, @PathVariable int columnIndex,
+                                 @Valid @RequestBody RequestStringDto columnName) {
+        log.info("Handling changing column name request. User id: {}, project id: {}, column index: {}, columnName: {}",
+                userId, projectId, columnIndex, columnName.getValue());
+
+        columnService.changeColumnName(userId, projectId, columnIndex, columnName.getValue());
     }
 }

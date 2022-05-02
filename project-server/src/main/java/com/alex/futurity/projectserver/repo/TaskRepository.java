@@ -1,5 +1,6 @@
 package com.alex.futurity.projectserver.repo;
 
+import com.alex.futurity.projectserver.entity.ProjectColumn;
 import com.alex.futurity.projectserver.entity.Task;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -7,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface TaskRepository extends JpaRepository<Task, Long> {
@@ -20,6 +22,12 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     @Modifying
     @Query(value = "delete from Task t where t.id = ?1", nativeQuery = true)
     void deleteTask(long id);
+
+    @Query(value = "select * from Task t " +
+            "join project_column pc on t.column_id = pc.id " +
+            "join project p on pc.project_id = p.id " +
+            "where p.user_id = ?1 and p.id = ?2 and pc.index = ?3 and t.index = ?4", nativeQuery = true)
+    Optional<Task> findTaskByIndex(long userId, long projectId, int columnIndex, int taskIndex);
 
     @Modifying
     @Query(value = "update task set column_id = " +

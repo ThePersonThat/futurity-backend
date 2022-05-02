@@ -55,9 +55,10 @@ public class TaskServiceImpl implements TaskService {
         }
 
         Task task = columnFrom.get(request.getFrom());
-        task.setIndex(request.getTo());
 
         if (request.getFromColumn() == request.getToColumn()) {
+            task.setIndex(request.getTo());
+
             if (request.getFrom() < request.getTo()) {
                 columnFrom.stream()
                         .filter(t -> t.getIndex() >= request.getFrom() && t.getIndex() <= request.getTo()
@@ -73,6 +74,7 @@ public class TaskServiceImpl implements TaskService {
             columnFrom.stream()
                     .filter(t -> t.getIndex() > request.getFrom())
                     .forEach(t -> t.setIndex(t.getIndex() - 1));
+            task.setIndex(request.getTo());
 
             taskRepo.changeColumnId(userId, projectId, request.getToColumn(), task.getId());
 
@@ -80,5 +82,16 @@ public class TaskServiceImpl implements TaskService {
                     .filter(t -> t.getIndex() >= request.getTo())
                     .forEach(t -> t.setIndex(t.getIndex() + 1));
         }
+    }
+
+    @Override
+    @Transactional
+    public void changeTaskName(long userId, long projectId, int columnIndex, int taskIndex, String taskName) {
+        Task task = taskRepo.findTaskByIndex(userId, projectId, columnIndex, taskIndex)
+                .orElseThrow(() -> new ClientSideException(
+                        "The task is associated with such data does not exist", HttpStatus.NOT_FOUND)
+                );
+
+        task.setName(taskName);
     }
 }

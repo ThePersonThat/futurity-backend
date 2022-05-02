@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.io.IOException;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,6 +50,7 @@ public class ProjectServiceImpl implements ProjectService {
 
         return projects.stream()
                 .map(ProjectDTO::fromProject)
+                .sorted(Comparator.comparingLong(ProjectDTO::getId))
                 .collect(Collectors.toList());
     }
 
@@ -78,6 +80,20 @@ public class ProjectServiceImpl implements ProjectService {
         project.addColumn(projectColumn);
 
         return projectColumn;
+    }
+
+    @Override
+    @Transactional
+    public void changeProjectName(long userId, long projectId, String projectName) {
+        Project project = findByProjectIdAndUserId(projectId, userId);
+        project.setName(projectName);
+    }
+
+    @Override
+    @Transactional
+    public void changeProjectDescription(long userId, long projectId, String projectDescription) {
+        Project project = findByProjectIdAndUserId(projectId, userId);
+        project.setDescription(projectDescription);
     }
 
     private Project findByProjectIdAndUserId(long projectId, long userId) {
