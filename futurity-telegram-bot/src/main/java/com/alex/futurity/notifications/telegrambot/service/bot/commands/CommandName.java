@@ -3,7 +3,9 @@ package com.alex.futurity.notifications.telegrambot.service.bot.commands;
 public enum CommandName {
     START("/start"),
     UNKNOWN("/unknown"),
-    HELP("/help");
+    HELP("/help"),
+    ENABLE_NOTIFICATION("/enableNotification"),
+    DISABLE_NOTIFICATION("/disableNotification");
 
     private final String commandName;
 
