@@ -20,6 +20,11 @@ public class BotUtils {
         return BotUtils.getText(update).split(" ");
     }
 
+
+    public static boolean hasText(Update update) {
+        return update.getMessage().hasText();
+    }
+
     public static boolean isNeedToSplit(Update update) {
         return splitCommand(update).length != 1;
     }
