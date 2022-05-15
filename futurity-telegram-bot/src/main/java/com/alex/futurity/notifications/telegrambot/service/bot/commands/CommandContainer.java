@@ -20,6 +20,7 @@ public class CommandContainer {
     public void addCommand(String commandName,Command command) {
         this.commandMap.put(commandName, command);
     }
+
     public Command getCommand(String commandName) {
         return this.commandMap.getOrDefault(commandName, unknownCommand);
     }
