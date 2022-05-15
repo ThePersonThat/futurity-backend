@@ -1,17 +1,17 @@
 package com.alex.futurity.notifications.telegrambot.entity;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 
 @Entity
 public class TelegramUser {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @Column(nullable = false, unique = true)
     private String userId; // id from other microservice
+    @Column(nullable = false, unique = false)
     private String telegramChatId;
+    @Column(nullable = false)
     private String username;
     private boolean enabledNotifications;
 
