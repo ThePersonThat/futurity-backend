@@ -2,9 +2,10 @@ package com.alex.futurity.notifications.telegrambot.service.bot.commands;
 
 public enum CommandName {
     START("/start"),
-    UNKNOWN("/unknown");
+    UNKNOWN("/unknown"),
+    HELP("/help");
 
-    private String commandName;
+    private final String commandName;
 
     CommandName(String commandName) {
         this.commandName = commandName;
