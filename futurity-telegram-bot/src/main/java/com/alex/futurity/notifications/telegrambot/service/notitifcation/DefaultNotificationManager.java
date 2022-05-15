@@ -43,4 +43,28 @@ public class DefaultNotificationManager implements NotificationManager {
     public void removeUserFromNotificationList(Long id) {
         this.userRepository.deleteById(id);
     }
+
+    @Override
+    public void enableNotification(String chatId) {
+        TelegramUser user = this.userRepository.findTelegramUserByTelegramChatId(chatId);
+        if (user == null) {
+            throw new NotificationException("Oops, we have some troubles...");
+        }
+        if(user.isEnabledNotifications()) {
+            user.setEnabledNotifications(true);
+            this.userRepository.save(user);
+        }
+    }
+
+    @Override
+    public void disableNotification(String chatId) {
+        TelegramUser user = this.userRepository.findTelegramUserByTelegramChatId(chatId);
+        if (user == null) {
+            throw new NotificationException("Oops, we have some troubles...");
+        }
+        if(user.isEnabledNotifications()) {
+            user.setEnabledNotifications(false);
+            this.userRepository.save(user);
+        }
+    }
 }
