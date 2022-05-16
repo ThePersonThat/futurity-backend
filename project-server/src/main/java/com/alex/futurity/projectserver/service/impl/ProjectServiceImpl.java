@@ -24,6 +24,7 @@ import java.util.stream.Collectors;
 @Log4j2
 public class ProjectServiceImpl implements ProjectService {
     private final ProjectRepository projectRepo;
+    private static final String NOT_FOUND_MESSAGE = "The project is associated with such data does not exist";
 
     @Override
     @Transactional
@@ -68,7 +69,7 @@ public class ProjectServiceImpl implements ProjectService {
         int deleted = projectRepo.deleteProjectByIdAndUserId(projectId, userId);
 
         if (deleted == 0) {
-            throw new ClientSideException("The project is associated with such data does not exist", HttpStatus.NOT_FOUND);
+            throw new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -97,9 +98,8 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     private Project findByProjectIdAndUserId(long projectId, long userId) {
-        return projectRepo.findByIdAndUserId(projectId, userId).orElseThrow(() -> new ClientSideException(
-                "The project is associated with such data does not exist", HttpStatus.NOT_FOUND)
-        );
+        return projectRepo.findByIdAndUserId(projectId, userId)
+                .orElseThrow(() -> new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND));
     }
 
     private boolean hasUserProjectWithName(String name, long userId) {

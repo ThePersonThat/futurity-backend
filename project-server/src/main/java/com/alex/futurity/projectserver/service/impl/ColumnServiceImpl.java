@@ -1,6 +1,8 @@
 package com.alex.futurity.projectserver.service.impl;
 
+import com.alex.futurity.projectserver.dto.CreationTaskDto;
 import com.alex.futurity.projectserver.dto.ProjectColumnDto;
+import com.alex.futurity.projectserver.entity.Project;
 import com.alex.futurity.projectserver.entity.ProjectColumn;
 import com.alex.futurity.projectserver.entity.Task;
 import com.alex.futurity.projectserver.exception.ClientSideException;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 public class ColumnServiceImpl implements ColumnService {
     private ProjectService projectService;
     private ColumnRepository columnRepo;
+    private static final String NOT_FOUND_MESSAGE = "The column is associated with such data does not exist";
 
     @Override
     public long createColumn(long userId, long projectId, String columnName) {
@@ -41,17 +44,9 @@ public class ColumnServiceImpl implements ColumnService {
 
     @Override
     @Transactional
-    public void deleteColumn(long userId, long projectId, int columnIndex) {
-        List<ProjectColumn> columns = findProjectColumnsForProject(projectId, userId, true);
-
-        if (columnIndex < 0 || columnIndex > columns.size()) {
-            throw new ClientSideException("Columns out of bounds", HttpStatus.BAD_REQUEST);
-        }
-
-        columns.stream()
-                .filter(column -> column.getIndex() > columnIndex)
-                .forEach(column -> column.setIndex(column.getIndex() - 1));
-        columnRepo.delete(columns.get(columnIndex));
+    public void deleteColumn(long userId, long projectId, long columnId) {
+        ProjectColumn projectColumn = findColumnByColumnId(projectId, userId, columnId);
+        columnRepo.delete(projectColumn);
     }
 
     @Override
@@ -81,35 +76,46 @@ public class ColumnServiceImpl implements ColumnService {
 
     @Override
     @Transactional
-    public Task addTaskToColumn(long userId, long projectId, int columnIndex, String taskName) {
-        ProjectColumn column = columnRepo.findProjectColumnByIndexAndProjectUserIdAndProjectId(columnIndex, userId, projectId)
-                .orElseThrow(() -> new ClientSideException(
-                        "The column is associated with such data does not exist", HttpStatus.NOT_FOUND)
-                );
-
-        Task task = new Task(taskName, column);
+    public Task addTaskToColumn(long userId, long projectId, long columnId, CreationTaskDto creationTaskDto) {
+        ProjectColumn column = findColumnByColumnId(projectId, userId, columnId);
+        Task task = new Task(creationTaskDto.getName(), creationTaskDto.getDeadline(), column);
         column.addTask(task);
         return task;
     }
 
     @Override
     @Transactional
-    public void changeColumnName(long userId, long projectId, int columnIndex, String columnName) {
-        ProjectColumn column = columnRepo.findProjectColumnByIndexAndProjectUserIdAndProjectId(columnIndex, userId, projectId)
-                .orElseThrow(() -> new ClientSideException(
-                "The column is associated with such data does not exist", HttpStatus.NOT_FOUND)
-        );
-
+    public void changeColumnName(long userId, long projectId, long columnId, String columnName) {
+        ProjectColumn column = findColumnByColumnId(projectId, userId, columnId);
         column.setName(columnName);
+    }
+
+    @Override
+    public List<Task> getTasksFromColumn(long userId, long projectId, long columnId) {
+        ProjectColumn projectColumn = findColumnByColumnId(projectId, userId, columnId);
+
+        return projectColumn.getTasks();
     }
 
     private List<ProjectColumn> findProjectColumnsForProject(long projectId, long userId, boolean checkSize) {
         List<ProjectColumn> columns = columnRepo.findAllByProjectIdAndProjectUserIdOrderByIndex(projectId, userId);
 
         if (columns.isEmpty() && checkSize) {
-            throw new ClientSideException("The column is associated with such data does not exist", HttpStatus.NOT_FOUND);
+            throw new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND);
         }
 
         return columns;
+    }
+
+    private ProjectColumn findColumnByColumnId(long projectId, long userId, long columnId) {
+        ProjectColumn projectColumn = columnRepo.findById(columnId)
+                .orElseThrow(() -> new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND));
+        Project project = projectColumn.getProject();
+
+        if (project.getId() != projectId || project.getUserId() != userId) {
+            throw new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND);
+        }
+
+        return projectColumn;
     }
 }

@@ -7,10 +7,12 @@ import lombok.Getter;
 @Getter
 @AllArgsConstructor
 public class TaskDto {
+    private long id;
     private String name;
-    private int columnIndex;
+    private long columnId;
+    private String deadline;
 
     public static TaskDto fromTask(Task task) {
-        return new TaskDto(task.getName(), task.getColumn().getIndex());
+        return new TaskDto(task.getId(), task.getName(), task.getColumn().getId(), task.getDeadline());
     }
 }

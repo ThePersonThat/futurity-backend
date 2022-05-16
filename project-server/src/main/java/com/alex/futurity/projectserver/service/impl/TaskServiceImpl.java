@@ -1,6 +1,9 @@
 package com.alex.futurity.projectserver.service.impl;
 
 import com.alex.futurity.projectserver.dto.ChangeTaskIndexRequestDto;
+import com.alex.futurity.projectserver.dto.CreationTaskDto;
+import com.alex.futurity.projectserver.entity.Project;
+import com.alex.futurity.projectserver.entity.ProjectColumn;
 import com.alex.futurity.projectserver.entity.Task;
 import com.alex.futurity.projectserver.exception.ClientSideException;
 import com.alex.futurity.projectserver.repo.TaskRepository;
@@ -19,27 +22,26 @@ import java.util.Objects;
 public class TaskServiceImpl implements TaskService {
     private final ColumnService columnService;
     private final TaskRepository taskRepo;
+    private static final String NOT_FOUND_MESSAGE = "The task is associated with such data does not exist";
 
     @Override
-    public long createTask(long userId, long projectId, int columnIndex, String taskName) {
-        Task task = columnService.addTaskToColumn(userId, projectId, columnIndex, taskName);
-
+    public long createTask(long userId, long projectId, long columnId, CreationTaskDto creationTaskDto) {
+        Task task = columnService.addTaskToColumn(userId, projectId, columnId, creationTaskDto);
         return task.getId();
     }
 
     @Override
     @Transactional
-    public void deleteTask(long userId, long projectId, int columnIndex, int taskIndex) {
-        List<Task> tasks = taskRepo.findAllTasks(userId, projectId, columnIndex);
-
-        if (taskIndex < 0 || taskIndex > tasks.size()) {
-            throw new ClientSideException("Tasks out of bounds", HttpStatus.BAD_REQUEST);
-        }
+    public void deleteTask(long userId, long projectId, long columnId, long taskId) {
+        List<Task> tasks = columnService.getTasksFromColumn(userId, projectId, columnId);
+        Task taskToRemove = tasks.stream().filter(task -> task.getId().equals(taskId)).findFirst()
+                .orElseThrow(() -> new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND));
 
         tasks.stream()
-                .filter(task -> task.getIndex() > taskIndex)
+                .filter(task -> task.getIndex() > taskToRemove.getIndex())
                 .forEach(task -> task.setIndex(task.getIndex() - 1));
-        taskRepo.deleteTask(tasks.get(taskIndex).getId());
+
+        taskRepo.deleteTask(taskToRemove.getId());
     }
 
     @Override
@@ -86,12 +88,21 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional
-    public void changeTaskName(long userId, long projectId, int columnIndex, int taskIndex, String taskName) {
-        Task task = taskRepo.findTaskByIndex(userId, projectId, columnIndex, taskIndex)
-                .orElseThrow(() -> new ClientSideException(
-                        "The task is associated with such data does not exist", HttpStatus.NOT_FOUND)
-                );
-
+    public void changeTaskName(long userId, long projectId, long columnId, long taskId, String taskName) {
+        Task task = findTaskByTaskId(userId, projectId, columnId, taskId);
         task.setName(taskName);
+    }
+
+    private Task findTaskByTaskId(long userId, long projectId, long columnId, long taskId) {
+        Task task = taskRepo.findById(taskId)
+                .orElseThrow(() -> new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND));
+        ProjectColumn column = task.getColumn();
+        Project project = column.getProject();
+
+        if (column.getId() != columnId || project.getUserId() != userId || project.getId() != projectId) {
+            throw new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND);
+        }
+
+        return task;
     }
 }

@@ -6,7 +6,6 @@ import com.alex.futurity.projectserver.service.ColumnService;
 import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -34,13 +33,13 @@ public class ColumnController {
         return columnService.getColumns(userId, projectId);
     }
 
-    @DeleteMapping("/{userId}/column/{projectId}/delete/{columnIndex}")
+    @DeleteMapping("/{userId}/column/{projectId}/{columnId}/delete/")
     @ResponseStatus(HttpStatus.OK)
-    public void deleteColumn(@PathVariable long userId, @PathVariable long projectId, @PathVariable int columnIndex) {
+    public void deleteColumn(@PathVariable long userId, @PathVariable long projectId, @PathVariable long columnId) {
         log.info("Handling deleting column request. User id: {}, project id: {}, column id: {}",
-                userId, projectId, columnIndex);
+                userId, projectId, columnId);
 
-        columnService.deleteColumn(userId, projectId, columnIndex);
+        columnService.deleteColumn(userId, projectId, columnId);
     }
 
     @PatchMapping("/{userId}/column/{projectId}/index/change")
@@ -53,13 +52,13 @@ public class ColumnController {
         columnService.changeColumnIndex(userId, projectId, from, to);
     }
 
-    @PatchMapping("/{userId}/column/{projectId}/{columnIndex}/name/")
+    @PatchMapping("/{userId}/column/{projectId}/{columnId}/name/")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void changeColumnName(@PathVariable long userId, @PathVariable long projectId, @PathVariable int columnIndex,
+    public void changeColumnName(@PathVariable long userId, @PathVariable long projectId, @PathVariable long columnId,
                                  @Valid @RequestBody RequestStringDto columnName) {
-        log.info("Handling changing column name request. User id: {}, project id: {}, column index: {}, columnName: {}",
-                userId, projectId, columnIndex, columnName.getValue());
+        log.info("Handling changing column name request. User id: {}, project id: {}, column id: {}, columnName: {}",
+                userId, projectId, columnId, columnName.getValue());
 
-        columnService.changeColumnName(userId, projectId, columnIndex, columnName.getValue());
+        columnService.changeColumnName(userId, projectId, columnId, columnName.getValue());
     }
 }

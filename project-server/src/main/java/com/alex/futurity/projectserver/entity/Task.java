@@ -27,12 +27,15 @@ public class Task {
     @Min(value = 0, message = "Wrong index number. Index number must start from 0")
     private Integer index;
 
+    private String deadline;
+
     @ManyToOne
     @JoinColumn(name = "column_id", nullable = false)
     private ProjectColumn column;
 
-    public Task(String name, ProjectColumn column) {
+    public Task(String name, String deadline, ProjectColumn column) {
         this.name = name;
+        this.deadline = deadline;
         this.column = column;
     }
 }

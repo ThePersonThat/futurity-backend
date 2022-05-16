@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 @Getter
 @AllArgsConstructor
 public class ProjectColumnDto {
+    private long id;
     private String name;
     private List<TaskDto> tasks;
 
@@ -21,6 +22,6 @@ public class ProjectColumnDto {
                 .map(TaskDto::fromTask)
                 .collect(Collectors.toList());
 
-        return new ProjectColumnDto(projectColumn.getName(), taskDtos);
+        return new ProjectColumnDto(projectColumn.getId(), projectColumn.getName(), taskDtos);
     }
 }
