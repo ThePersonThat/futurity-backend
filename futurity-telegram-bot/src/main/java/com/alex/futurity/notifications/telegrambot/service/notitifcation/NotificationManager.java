@@ -7,6 +7,8 @@ public interface NotificationManager {
 
     void sendNotification(String text, String userId) throws NotificationException;
 
+    void sendNotificationByChatId(String text, String chatId) throws NotificationException;
+
     void addUserToNotificationList(TelegramUser telegramUser) throws Exception;
 
     void removeUserFromNotificationList(Long id) throws NotificationException;
