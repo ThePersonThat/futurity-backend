@@ -33,6 +33,16 @@ public class DefaultNotificationManager implements NotificationManager {
     }
 
     @Override
+    public void sendNotificationByChatId(String text, String chatId) throws NotificationException {
+        try {
+            this.messageSender.sendMessage(text, chatId);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            throw new NotificationException("API ERROR. STATUS CODE: 500");
+        }
+    }
+
+    @Override
     @Transactional
     public void addUserToNotificationList(TelegramUser telegramUser) {
         this.userRepository.save(telegramUser);
