@@ -51,7 +51,12 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler({ClientSideException.class})
     public ResponseEntity<ErrorMessage> handleClientSideException(ClientSideException e) {
         ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
-
         return ResponseEntity.status(e.getStatus()).body(errorMessage);
+    }
+
+    @ExceptionHandler(OauthLoginFailedException.class)
+    public ResponseEntity<ErrorMessage> handleOauthLoginFailedException(OauthLoginFailedException e) {
+        ErrorMessage errorMessage = new ErrorMessage(e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
     }
 }
