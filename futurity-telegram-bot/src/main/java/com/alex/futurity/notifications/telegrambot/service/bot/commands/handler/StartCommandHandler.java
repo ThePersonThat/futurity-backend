@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.Update;
 
+import java.net.URISyntaxException;
+
 @Component
 public class StartCommandHandler implements CommandHandler {
     private final MessageSender sender;
@@ -43,7 +45,8 @@ public class StartCommandHandler implements CommandHandler {
             SendMessage sendMessage = new SendMessage();
             sendMessage.enableMarkdown(true);
             sendMessage.setChatId(chatId);
-            sendMessage.setText(String.format("Please, authorize in our bot. Please, follow this: [link](%s)", authLink));
+            String authLink = loginUserUrl(chatId);
+            sendMessage.setText(String.format("Please, authorize in our bot. Please, follow this: %s", authLink));
             this.sender.sendMessage(sendMessage);
         }
     }
@@ -55,5 +58,9 @@ public class StartCommandHandler implements CommandHandler {
                 .userId(userId)
                 .username(BotUtils.getUsername(update))
                 .build();
+    }
+
+    private String loginUserUrl(String chatId) throws URISyntaxException {
+        return authLink + "?id=" + chatId;
     }
 }
