@@ -1,7 +1,9 @@
 package com.alex.futurity.notifications.telegrambot.controller;
 
 import com.alex.futurity.notifications.telegrambot.dto.NotificationMessageDTO;
+import com.alex.futurity.notifications.telegrambot.service.bot.login.OauthSuccessEventHandler;
 import com.alex.futurity.notifications.telegrambot.service.notitifcation.NotificationManager;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,12 +16,10 @@ import java.io.IOException;
 
 @RestController
 @Log4j2
+@RequiredArgsConstructor
 public class BotApiController {
     private final NotificationManager notificationManager;
-
-    public BotApiController(NotificationManager notificationManager) {
-        this.notificationManager = notificationManager;
-    }
+    private final OauthSuccessEventHandler oauthSuccessEventHandler;
 
     @GetMapping("/telegram/send/")
     public ResponseEntity<?> sendTelegram(@RequestBody NotificationMessageDTO message) {
@@ -29,11 +29,11 @@ public class BotApiController {
 
     @GetMapping("/oauth/success")
     public ResponseEntity<?> oauthLoginSuccess(HttpServletRequest request) throws IOException {
-        log.info(request.getParameter("accessToken"));
-        log.info(request.getParameter("refreshToken"));
-        String id = request.getParameter("id");
-        log.info(id);
-        this.notificationManager.sendNotificationByChatId("We authorize you", id);
+        String chatId = request.getParameter("id");
+        String userId = request.getParameter("userId");
+        String username = request.getParameter("username");
+        this.oauthSuccessEventHandler.handleSuccessLogin(userId, chatId, username);
+        this.notificationManager.sendNotificationByChatId("We authorize you, " + username + ". Your id is: " + userId, chatId);
         return ResponseEntity.ok().build();
     }
 }
