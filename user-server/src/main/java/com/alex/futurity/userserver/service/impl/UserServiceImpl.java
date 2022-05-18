@@ -9,6 +9,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
@@ -38,5 +39,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ClientSideException(String.format("User with id \"%s\" is not found", id), HttpStatus.NOT_FOUND));
 
         return new ByteArrayResource(user.getAvatar());
+    }
+
+    @Override
+    @Transactional
+    public User findById(long id) {
+        return this.userRepo.findById(id).orElseThrow(() -> new ClientSideException(String.format("User with id \"%s\" is not found", id), HttpStatus.NOT_FOUND));
     }
 }

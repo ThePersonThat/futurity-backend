@@ -10,4 +10,5 @@ public interface UserService {
     void saveUser(User user);
     Optional<User> findUserByEmail(String email);
     Resource findUserAvatar(long id);
+    User findById(long id);
 }
