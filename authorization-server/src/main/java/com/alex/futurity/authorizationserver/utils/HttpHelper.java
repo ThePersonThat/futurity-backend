@@ -47,4 +47,16 @@ public class HttpHelper {
             throw new IllegalStateException("Something went wrong. Try again after a while");
         }
     }
+
+    public <T> T doGet(String url, Class<T> responseType, String authHeader) {
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + authHeader);
+            ResponseEntity<T> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), responseType);
+            return response.getBody();
+        } catch (ResourceAccessException e) {
+            log.error("Error getting data for url \"{}\": {}", url, e.getMessage());
+            throw new IllegalStateException("Something went wrong. Try again after a while");
+        }
+    }
 }
