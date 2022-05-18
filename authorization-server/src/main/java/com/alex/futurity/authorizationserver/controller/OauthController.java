@@ -1,6 +1,7 @@
 package com.alex.futurity.authorizationserver.controller;
 
 import com.alex.futurity.authorizationserver.dto.JwtRefreshResponseDTO;
+import com.alex.futurity.authorizationserver.dto.OauthSuccessfulDTO;
 import com.alex.futurity.authorizationserver.service.oauth.EmailPasswordOauthLogin;
 import com.alex.futurity.authorizationserver.service.oauth.FuturityOauthLoginHandler;
 import lombok.extern.log4j.Log4j2;
@@ -28,11 +29,14 @@ public class OauthController {
     @RequestMapping("/login/email/password")
     public ResponseEntity<?> loginUser(@RequestBody EmailPasswordOauthLogin dto, @RequestParam String redirectUrl, HttpServletResponse response) throws IOException {
         log.info("REDIRECT URL: {}", redirectUrl);
-        JwtRefreshResponseDTO jwtRefreshResponseDTO = this.oauthLoginHandler.loginUser(dto);
+        OauthSuccessfulDTO oauthDto = this.oauthLoginHandler.loginUser(dto);
+        log.info("USER name: " + oauthDto.getUsername());
         String url = UriComponentsBuilder.fromUriString(redirectUrl)
-                .queryParam("accessToken", jwtRefreshResponseDTO.getAccessToken())
-                .queryParam("refreshToken", jwtRefreshResponseDTO.getRefreshToken()).toUriString();//todo return tokens in cookies(?)
+                .queryParam("accessToken", oauthDto.getTokens().getAccessToken())
+                .queryParam("refreshToken", oauthDto.getTokens().getRefreshToken())
+                .queryParam("userId", oauthDto.getUserId())
+                .queryParam("username", oauthDto.getUsername()).toUriString();
         response.sendRedirect(url);
-        return ResponseEntity.ok(jwtRefreshResponseDTO);
+        return ResponseEntity.ok(dto);
     }
 }
