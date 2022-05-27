@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import javax.transaction.Transactional;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -95,6 +96,18 @@ public class ColumnServiceImpl implements ColumnService {
         ProjectColumn projectColumn = findColumnByColumnId(projectId, userId, columnId);
 
         return projectColumn.getTasks();
+    }
+
+    @Override
+    @Transactional
+    public void markColumnAsDone(long userId, long projectId, long columnToMark, Long columnToUnmark) {
+        ProjectColumn column = findColumnByColumnId(projectId, userId, columnToMark);
+        column.setDoneColumn(true);
+
+        Optional.ofNullable(columnToUnmark).ifPresent(id -> {
+            ProjectColumn colToUnmark = findColumnByColumnId(projectId, userId, id);
+            colToUnmark.setDoneColumn(false);
+        });
     }
 
     private List<ProjectColumn> findProjectColumnsForProject(long projectId, long userId, boolean checkSize) {

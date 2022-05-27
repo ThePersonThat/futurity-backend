@@ -5,6 +5,7 @@ import com.alex.futurity.projectserver.dto.ProjectColumnDto;
 import com.alex.futurity.projectserver.entity.Task;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ColumnService {
     long createColumn(long userId, long projectId, String columnName);
@@ -14,4 +15,5 @@ public interface ColumnService {
     Task addTaskToColumn(long userId, long projectId, long columnId, CreationTaskDto creationTaskDto);
     void changeColumnName(long userId, long projectId, long columnId, String columnName);
     List<Task> getTasksFromColumn(long userId, long projectId, long columnId);
+    void markColumnAsDone(long userId, long projectId, long columnToMark, Long columnToUnmark);
 }

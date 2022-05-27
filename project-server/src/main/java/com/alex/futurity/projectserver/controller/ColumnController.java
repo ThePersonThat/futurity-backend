@@ -61,4 +61,15 @@ public class ColumnController {
 
         columnService.changeColumnName(userId, projectId, columnId, columnName.getValue());
     }
+
+    @PatchMapping("/{userId}/column/{projectId}/mark")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public void markColumnAsDone(@PathVariable long userId, @PathVariable long projectId,
+                                 @RequestParam(value = "columnIdToUnmark", required = false) Long columnToUnmark,
+                                 @RequestParam(value = "columnIdToMark") long columnToMark) {
+        log.info("Handlong marking column request. User id: {}, project id: {}, column to mark: {}, column to unmark: {}",
+                userId, projectId, columnToMark, columnToUnmark);
+
+        columnService.markColumnAsDone(userId, projectId, columnToMark, columnToUnmark);
+    }
 }

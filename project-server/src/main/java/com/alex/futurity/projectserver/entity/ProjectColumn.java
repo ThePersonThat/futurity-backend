@@ -40,6 +40,9 @@ public class ProjectColumn {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private List<Task> tasks;
 
+    @Column(nullable = false)
+    private boolean doneColumn = false;
+
     public ProjectColumn(String name, Project project) {
         this.name = name;
         this.project = project;
