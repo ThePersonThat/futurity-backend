@@ -38,4 +38,11 @@ public class GlobalControllerHandler {
 
         return ResponseEntity.status(e.getStatus()).body(errorMessage);
     }
+
+    @ExceptionHandler({Exception.class})
+    public ResponseEntity<ErrorMessage> handleException(Exception e) {
+        ErrorMessage errorMessage = new ErrorMessage("Something went wrong. Please try again later");
+
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
+    }
 }
