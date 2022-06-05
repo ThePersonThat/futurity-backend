@@ -93,6 +93,12 @@ public class TaskServiceImpl implements TaskService {
         task.setName(taskName);
     }
 
+    @Override
+    public void changeTaskDeadline(long userId, long projectId, long columnId, long taskId, String deadline) {
+        Task task = findTaskByTaskId(userId, projectId, columnId, taskId);
+        task.setDeadline(deadline);
+    }
+
     private Task findTaskByTaskId(long userId, long projectId, long columnId, long taskId) {
         Task task = taskRepo.findById(taskId)
                 .orElseThrow(() -> new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND));

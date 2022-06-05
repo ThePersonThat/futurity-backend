@@ -8,4 +8,5 @@ public interface TaskService {
     void deleteTask(long userId, long projectId, long columnId, long taskId);
     void changeTaskIndex(long userId, long projectId, ChangeTaskIndexRequestDto request);
     void changeTaskName(long userId, long projectId, long columnId, long taskId, String taskName);
+    void changeTaskDeadline(long userId, long projectId, long columnId, long taskId, String deadline);
 }

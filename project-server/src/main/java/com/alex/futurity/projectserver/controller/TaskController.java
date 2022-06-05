@@ -56,4 +56,14 @@ public class TaskController {
 
         taskService.changeTaskName(userId, projectId, columnId, taskId, taskName.getValue());
     }
+
+    @PatchMapping("/{userId}/task/{projectId}/{columnId}/{taskId}/deadline")
+    @ResponseStatus(HttpStatus.OK)
+    public void changeTaskDeadline(@PathVariable long userId, @PathVariable long projectId, @PathVariable long columnId,
+                                   @PathVariable long taskId, @Valid @RequestBody RequestStringDto deadline) {
+        log.info("Handling changing task deadline request. User id: {}, project id: {}, column index: {}, task index: {}, task deadline: {}",
+                userId, projectId, columnId, taskId, deadline.getValue());
+
+        taskService.changeTaskDeadline(userId, projectId, columnId, taskId, deadline.getValue());
+    }
 }
