@@ -46,8 +46,17 @@ public class ColumnServiceImpl implements ColumnService {
     @Override
     @Transactional
     public void deleteColumn(long userId, long projectId, long columnId) {
-        ProjectColumn projectColumn = findColumnByColumnId(projectId, userId, columnId);
-        columnRepo.delete(projectColumn);
+        List<ProjectColumn> columns = findProjectColumnsForProject(projectId, userId, true);
+        ProjectColumn columnToDelete = columns.stream()
+                .filter(column -> column.getId() == columnId)
+                .findFirst()
+                .orElseThrow(() -> new ClientSideException(NOT_FOUND_MESSAGE, HttpStatus.NOT_FOUND));
+
+        columns.stream()
+                .filter(column -> column.getIndex() > columnToDelete.getIndex())
+                .forEach(column -> column.setIndex(column.getIndex() - 1));
+
+        columnRepo.delete(columnToDelete);
     }
 
     @Override
