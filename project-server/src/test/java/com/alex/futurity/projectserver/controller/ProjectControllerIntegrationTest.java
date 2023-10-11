@@ -1,8 +1,7 @@
 package com.alex.futurity.projectserver.controller;
 
-import com.alex.futurity.projectserver.ProjectServerApplication;
-import com.alex.futurity.projectserver.dto.CreationProjectRequestDTO;
-import com.alex.futurity.projectserver.dto.ProjectDTO;
+import com.alex.futurity.projectserver.dto.CreationProjectRequestDto;
+import com.alex.futurity.projectserver.dto.ProjectDto;
 import com.alex.futurity.projectserver.entity.Project;
 import com.alex.futurity.projectserver.exception.ErrorMessage;
 import com.alex.futurity.projectserver.repo.ProjectRepository;
@@ -14,43 +13,41 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.*;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockPart;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
+import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.shaded.com.fasterxml.jackson.core.type.TypeReference;
+import org.testcontainers.shaded.com.fasterxml.jackson.databind.ObjectMapper;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.assertj.core.api.Assertions.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT, classes = ProjectServerApplication.class)
+@SpringBootTest
+@AutoConfigureMockMvc
 @Testcontainers
 @ExtendWith(SpringExtension.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class ProjectControllerIntegrationTest {
-    @LocalServerPort
-    private int port;
-    protected String url;
-
     @Autowired
-    private TestRestTemplate restTemplate;
-
+    private MockMvc mockMvc;
     @Autowired
     private ProjectRepository projectRepository;
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     @Container
     private final static PostgreSQLContainer<?> postgresContainer =
@@ -58,41 +55,43 @@ class ProjectControllerIntegrationTest {
                     .withUsername("postgres")
                     .withPassword("root");
 
-    private final static String validName = "Spring learning";
-    private final static String validDescription = "Learning Spring boot";
-    private final static MockMultipartFile validPreview =
-            new MockMultipartFile("project", "project-preview.jpeg", MediaType.IMAGE_JPEG_VALUE, new byte[1]);
+    private final static String VALID_NAME = "Spring learning";
+    private final static String VALID_DESCRIPTION = "Learning Spring boot";
+    private final static MockMultipartFile VALID_PREVIEW =
+            new MockMultipartFile("preview", "project-preview.jpeg", MediaType.IMAGE_JPEG_VALUE, new byte[1]);
 
     @Test
     @SneakyThrows
     @DisplayName("Should create project if a project request is valid")
     void testCreateProject() {
         Long id = 1L;
-        CreationProjectRequestDTO dto = new CreationProjectRequestDTO(validName, validDescription, null, null);
-        ResponseEntity<Long> response =
-                restTemplate.postForEntity(url + "/" + id + "/create", buildMultiPartHttpEntity(dto, validPreview),
-                        Long.class);
+        CreationProjectRequestDto dto = new CreationProjectRequestDto(VALID_NAME, VALID_DESCRIPTION, null, null);
+        String content = mockMvc.perform(multipart("/" + id + "/create")
+                        .file(VALID_PREVIEW)
+                        .part(buildMockPart(dto)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        Project project = getProject();
-
-        assertThat(project.getId()).isEqualTo(response.getBody());
-        assertThat(project.getName()).isEqualTo(validName);
-        assertThat(project.getUserId()).isEqualTo(id);
-        assertThat(project.getDescription()).isEqualTo(validDescription);
-        assertThat(project.getPreview()).isEqualTo(validPreview.getBytes());
+        assertThat(getProject())
+                .returns(Long.parseLong(content), Project::getId)
+                .returns(VALID_NAME, Project::getName)
+                .returns(id, Project::getUserId)
+                .returns(VALID_DESCRIPTION, Project::getDescription)
+                .returns(VALID_PREVIEW.getBytes(), Project::getPreview);
     }
 
     @ParameterizedTest
     @MethodSource("getInvalidProjectRequests")
     @SneakyThrows
     @DisplayName("Should return error if a project request is invalid")
-    void testCreateProjectWithInvalidRequest(CreationProjectRequestDTO dto, MockMultipartFile preview, ErrorMessage message) {
-        ResponseEntity<ErrorMessage> response =
-                restTemplate.postForEntity(url + "/1/create", buildMultiPartHttpEntity(dto, preview), ErrorMessage.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isEqualTo(message);
+    void testCreateProjectWithInvalidRequest(CreationProjectRequestDto dto, MockMultipartFile preview, ErrorMessage message) {
+        mockMvc.perform(multipart("/1/create")
+                        .file(preview)
+                        .part(buildMockPart(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(objectMapper.writeValueAsString(message)));
     }
 
     @Test
@@ -100,14 +99,15 @@ class ProjectControllerIntegrationTest {
     @DisplayName("Should return error if the project with the same name exist")
     void testCreateProjectWithExistingName() {
         long id = 1L;
-        Project project = new Project(id, validName, validDescription, validPreview.getBytes());
+        Project project = new Project(id, VALID_NAME, VALID_DESCRIPTION, VALID_PREVIEW.getBytes());
         createProject(project);
-        CreationProjectRequestDTO dto = new CreationProjectRequestDTO(validName, validDescription, null, null);
-        ResponseEntity<ErrorMessage> response =
-                restTemplate.postForEntity(url + "/" + id + "/create", buildMultiPartHttpEntity(dto, validPreview), ErrorMessage.class);
+        CreationProjectRequestDto dto = new CreationProjectRequestDto(VALID_NAME, VALID_DESCRIPTION, null, null);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody()).isEqualTo(new ErrorMessage("Project with such name exists"));
+        mockMvc.perform(multipart("/" + id + "/create")
+                        .file(VALID_PREVIEW)
+                        .part(buildMockPart(dto)))
+                .andExpect(status().isConflict())
+                .andExpect(content().json(objectMapper.writeValueAsString(new ErrorMessage("Project with such name exists"))));
     }
 
     @Test
@@ -115,21 +115,23 @@ class ProjectControllerIntegrationTest {
     @DisplayName("Should return projects by id")
     void testGetProjectsByUserId() {
         long id = 1L;
-        Project project = new Project(id, validName, validDescription, validPreview.getBytes());
+        Project project = new Project(id, VALID_NAME, VALID_DESCRIPTION, VALID_NAME.getBytes());
         createProject(project);
         long projectId = getProject().getId();
-        ResponseEntity<List<ProjectDTO>> response =
-                restTemplate.exchange(url + "/" + id + "/projects", HttpMethod.GET, null,
-                        new ParameterizedTypeReference<>() {});
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        List<ProjectDTO> projects = response.getBody();
-        assertThat(projects).hasSize(1);
-        ProjectDTO projectDTO = projects.get(0);
-        assertThat(projectDTO.getId()).isEqualTo(id);
-        assertThat(projectDTO.getDescription()).isEqualTo(validDescription);
-        assertThat(projectDTO.getName()).isEqualTo(validName);
-        assertThat(projectDTO.getPreviewUrl()).isEqualTo("/preview/" + projectId);
+        String result = mockMvc.perform(get("/" + id + "/projects"))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        List<ProjectDto> projects = objectMapper.readValue(result, new TypeReference<List<ProjectDto>>() {});
+        assertThat(projects)
+                .singleElement()
+                .returns(id, ProjectDto::getId)
+                .returns(VALID_DESCRIPTION, ProjectDto::getDescription)
+                .returns(VALID_NAME, ProjectDto::getName)
+                .returns("/preview/" + projectId, ProjectDto::getPreviewUrl);
     }
 
     @Test
@@ -137,30 +139,24 @@ class ProjectControllerIntegrationTest {
     @DisplayName("Should load the preview")
     void testGetPreview() {
         long id = 1L;
-        Project project = new Project(id, validName, validDescription, validPreview.getBytes());
+        Project project = new Project(id, VALID_NAME, VALID_DESCRIPTION, VALID_PREVIEW.getBytes());
         createProject(project);
         long projectId = getProject().getId();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", "*/*");
-        ResponseEntity<byte[]> response =
-                restTemplate.exchange(url + "/" + id + "/preview/" + projectId, HttpMethod.GET, new HttpEntity<>(headers), byte[].class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isNotNull();
-        assertThat(response.getBody()).isEqualTo(validPreview.getBytes());
+        mockMvc.perform(get("/" + id + "/preview/" + projectId))
+                .andExpect(status().isOk())
+                .andExpect(content().bytes(VALID_PREVIEW.getBytes()));
     }
 
     @Test
     @SneakyThrows
     @DisplayName("Should return error if review is not found")
     void testGetNotExistingPreview() {
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", "*/*");
-        ResponseEntity<ErrorMessage> response =
-                restTemplate.exchange(url + "/1/preview/1", HttpMethod.GET, new HttpEntity<>(headers), ErrorMessage.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody()).isEqualTo(new ErrorMessage("The project is associated with such data does not exist"));
+        mockMvc.perform(get("/1/preview/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().string(
+                        objectMapper.writeValueAsString(new ErrorMessage("The project is associated with such data does not exist"))
+                ));
     }
 
     @Test
@@ -168,28 +164,26 @@ class ProjectControllerIntegrationTest {
     @DisplayName("Should delete project if it exists")
     void testDeleteProject() {
         long id = 1L;
-        Project project = new Project(id, validName, validDescription, validPreview.getBytes());
+        Project project = new Project(id, VALID_NAME, VALID_DESCRIPTION, VALID_NAME.getBytes());
         createProject(project);
         long projectId = getProject().getId();
 
-        ResponseEntity<String> response =
-                restTemplate.exchange(url + "/" + id + "/delete/" + projectId, HttpMethod.DELETE, null, String.class);
+        mockMvc.perform(delete("/" + id + "/delete/" + projectId))
+                .andExpect(status().isOk());
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         List<Project> projects = projectRepository.findAll();
-        assertThat(projects).hasSize(0);
+        assertThat(projects).isEmpty();
     }
 
     @Test
     @SneakyThrows
     @DisplayName("Should return an error if a project is not found")
     void testDeleteNotExistingProject() {
-        ResponseEntity<ErrorMessage> response =
-                restTemplate.exchange(url + "/1/delete/1", HttpMethod.DELETE, null, ErrorMessage.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .isEqualTo(new ErrorMessage("The project is associated with such data does not exist"));
+        mockMvc.perform(delete("/1/delete/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().json(
+                        objectMapper.writeValueAsString(new ErrorMessage("The project is associated with such data does not exist"))
+                ));
     }
 
     private static Stream<Arguments> getInvalidProjectRequests() {
@@ -202,18 +196,18 @@ class ProjectControllerIntegrationTest {
         MockMultipartFile withoutType = new MockMultipartFile("preview", "preview", MediaType.IMAGE_JPEG_VALUE,
                 new byte[10]);
 
-        CreationProjectRequestDTO validDto = new CreationProjectRequestDTO(validName, validDescription,
+        CreationProjectRequestDto validDto = new CreationProjectRequestDto(VALID_NAME, VALID_DESCRIPTION,
                 null, null);
 
         // invalid names
-        CreationProjectRequestDTO dtoWithNullName = new CreationProjectRequestDTO(null, validDescription, null, null);
-        CreationProjectRequestDTO dtoWithEmptyName = new CreationProjectRequestDTO("", validDescription, null, null);
-        CreationProjectRequestDTO dtoWithBlankName = new CreationProjectRequestDTO("      ", validDescription, null, null);
+        CreationProjectRequestDto dtoWithNullName = new CreationProjectRequestDto(null, VALID_DESCRIPTION, null, null);
+        CreationProjectRequestDto dtoWithEmptyName = new CreationProjectRequestDto("", VALID_DESCRIPTION, null, null);
+        CreationProjectRequestDto dtoWithBlankName = new CreationProjectRequestDto("      ", VALID_DESCRIPTION, null, null);
 
         // invalid descriptions
-        CreationProjectRequestDTO dtoWithNullDescription = new CreationProjectRequestDTO(validName, null, null, null);
-        CreationProjectRequestDTO dtoWithEmptyDescription = new CreationProjectRequestDTO(validName, "", null, null);
-        CreationProjectRequestDTO dtoWithBlankDescription = new CreationProjectRequestDTO(validName, "      ", null, null);
+        CreationProjectRequestDto dtoWithNullDescription = new CreationProjectRequestDto(VALID_NAME, null, null, null);
+        CreationProjectRequestDto dtoWithEmptyDescription = new CreationProjectRequestDto(VALID_NAME, "", null, null);
+        CreationProjectRequestDto dtoWithBlankDescription = new CreationProjectRequestDto(VALID_NAME, "      ", null, null);
 
         return Stream.of(
                 // invalid files
@@ -223,27 +217,15 @@ class ProjectControllerIntegrationTest {
                 Arguments.of(validDto, withoutType, new ErrorMessage("Wrong image type. Must be one of the following: .jpeg, .png, .gif")),
 
                 // invalid names
-                Arguments.of(dtoWithNullName, validPreview, new ErrorMessage("Wrong name. Name must not be empty")),
-                Arguments.of(dtoWithEmptyName, validPreview, new ErrorMessage("Wrong name. Name must not be empty")),
-                Arguments.of(dtoWithBlankName, validPreview, new ErrorMessage("Wrong name. Name must not be empty")),
+                Arguments.of(dtoWithNullName, VALID_PREVIEW, new ErrorMessage("Wrong name. Name must not be empty")),
+                Arguments.of(dtoWithEmptyName, VALID_PREVIEW, new ErrorMessage("Wrong name. Name must not be empty")),
+                Arguments.of(dtoWithBlankName, VALID_PREVIEW, new ErrorMessage("Wrong name. Name must not be empty")),
 
                 // invalid descriptions
-                Arguments.of(dtoWithNullDescription, validPreview, new ErrorMessage("Wrong description. Description must not be empty")),
-                Arguments.of(dtoWithEmptyDescription, validPreview, new ErrorMessage("Wrong description. Description must not be empty")),
-                Arguments.of(dtoWithBlankDescription, validPreview, new ErrorMessage("Wrong description. Description must not be empty"))
+                Arguments.of(dtoWithNullDescription, VALID_PREVIEW, new ErrorMessage("Wrong description. Description must not be empty")),
+                Arguments.of(dtoWithEmptyDescription, VALID_PREVIEW, new ErrorMessage("Wrong description. Description must not be empty")),
+                Arguments.of(dtoWithBlankDescription, VALID_PREVIEW, new ErrorMessage("Wrong description. Description must not be empty"))
         );
-    }
-
-    protected HttpEntity<MultiValueMap<String, Object>> buildMultiPartHttpEntity(Object dto, MockMultipartFile preview) {
-        Map<String, List<Object>> fields = Map.of(
-                "preview", List.of(preview.getResource()), "project", List.of(dto)
-        );
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>(fields);
-
-        return new HttpEntity<>(body, headers);
     }
 
     private void createProject(Project project) {
@@ -257,15 +239,18 @@ class ProjectControllerIntegrationTest {
         return projects.get(0);
     }
 
-    @PostConstruct
-    private void initHost() {
-        url = "http://localhost:" + port;
-    }
-
     @DynamicPropertySource
     public static void postgresqlProperties(DynamicPropertyRegistry registry) {
         registry.add("spring.datasource.url", postgresContainer::getJdbcUrl);
         registry.add("spring.datasource.password", postgresContainer::getPassword);
         registry.add("spring.datasource.username", postgresContainer::getUsername);
+    }
+
+    @SneakyThrows
+    private <T> MockPart buildMockPart(T dto) {
+        MockPart project = new MockPart("project", objectMapper.writeValueAsBytes(dto));
+        project.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+
+        return project;
     }
 }

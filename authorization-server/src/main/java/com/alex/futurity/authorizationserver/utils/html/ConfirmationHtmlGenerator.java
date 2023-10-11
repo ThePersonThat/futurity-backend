@@ -1,22 +1,18 @@
 package com.alex.futurity.authorizationserver.utils.html;
 
 import com.alex.futurity.authorizationserver.utils.FileReader;
+import jakarta.annotation.PostConstruct;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PostConstruct;
 
 @Component
 public class ConfirmationHtmlGenerator implements HtmlGenerator {
-    private final FileReader fileReader;
     private String html;
 
-    public ConfirmationHtmlGenerator(FileReader fileReader) {
-        this.fileReader = fileReader;
-    }
+    public static final String CONFIRMATION_PATH = "html_templates/confirmation.html";
 
     @PostConstruct
     private void loadHtmlFile() {
-        html = fileReader.readFileToString("html_templates/confirmation.html");
+        html = FileReader.readFileToString(CONFIRMATION_PATH);
     }
 
     @Override

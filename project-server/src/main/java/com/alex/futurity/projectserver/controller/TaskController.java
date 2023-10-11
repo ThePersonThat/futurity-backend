@@ -1,5 +1,6 @@
 package com.alex.futurity.projectserver.controller;
 
+import com.alex.futurity.projectserver.dto.ChangeTaskDeadlineDto;
 import com.alex.futurity.projectserver.dto.ChangeTaskIndexRequestDto;
 import com.alex.futurity.projectserver.dto.CreationTaskDto;
 import com.alex.futurity.projectserver.dto.RequestStringDto;
@@ -9,7 +10,9 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
+
+import java.time.ZonedDateTime;
 
 @RestController
 @AllArgsConstructor
@@ -59,11 +62,14 @@ public class TaskController {
 
     @PatchMapping("/{userId}/task/{projectId}/{columnId}/{taskId}/deadline")
     @ResponseStatus(HttpStatus.OK)
-    public void changeTaskDeadline(@PathVariable long userId, @PathVariable long projectId, @PathVariable long columnId,
-                                   @PathVariable long taskId, @RequestBody String deadline) {
+    public void changeTaskDeadline(@PathVariable long userId,
+                                   @PathVariable long projectId,
+                                   @PathVariable long columnId,
+                                   @PathVariable long taskId,
+                                   @RequestBody ChangeTaskDeadlineDto deadlineDto) {
         log.info("Handling changing task deadline request. User id: {}, project id: {}, column index: {}, task index: {}, task deadline: {}",
-                userId, projectId, columnId, taskId, deadline);
+                userId, projectId, columnId, taskId, deadlineDto.getDeadline());
 
-        taskService.changeTaskDeadline(userId, projectId, columnId, taskId, deadline);
+        taskService.changeTaskDeadline(userId, projectId, columnId, taskId, deadlineDto.getDeadline());
     }
 }

@@ -3,7 +3,7 @@ package com.alex.futurity.authorizationserver.domain;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.Size;
 
 @Getter
 @AllArgsConstructor

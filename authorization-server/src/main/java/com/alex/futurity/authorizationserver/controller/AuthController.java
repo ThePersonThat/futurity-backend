@@ -8,9 +8,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
-import javax.validation.Valid;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 
 @RestController
 @AllArgsConstructor
@@ -20,13 +20,13 @@ public class AuthController {
 
     @PostMapping("/singup")
     @ResponseStatus(value = HttpStatus.CREATED)
-    public void singUp(@RequestPart MultipartFile avatar, @Valid @RequestPart SingUpRequestDTO user) {
+    public void singUp(@RequestPart MultipartFile avatar, @Valid @RequestPart SingUpRequestDto user) {
         service.singUp(user, avatar);
     }
 
     @PostMapping("/login")
-    public ResponseEntity<JwtTokenDTO> login(@Valid @RequestBody LoginRequestDTO user, HttpServletResponse response) {
-        JwtRefreshResponseDTO dto = service.login(user);
+    public ResponseEntity<JwtTokenDto> login(@Valid @RequestBody LoginRequestDto user, HttpServletResponse response) {
+        JwtRefreshResponseDto dto = service.login(user);
 
         Cookie cookie = new Cookie(REFRESH_TOKEN_KEY, dto.getRefreshToken());
         cookie.setHttpOnly(true);
@@ -34,23 +34,23 @@ public class AuthController {
 
         response.addCookie(cookie);
 
-        return ResponseEntity.ok(new JwtTokenDTO(dto.getAccessToken()));
+        return ResponseEntity.ok(new JwtTokenDto(dto.getAccessToken()));
     }
 
     @PostMapping("/confirm-code")
     @ResponseStatus(value = HttpStatus.OK)
-    public void confirmCode(@Valid @RequestBody ConfirmCodeRequestDTO code) {
+    public void confirmCode(@Valid @RequestBody ConfirmCodeRequestDto code) {
         service.confirmCode(code);
     }
 
     @PostMapping("/confirm-email")
     @ResponseStatus(value = HttpStatus.OK)
-    public void confirmEmail(@Valid @RequestBody ConfirmEmailRequestDTO email) {
+    public void confirmEmail(@Valid @RequestBody ConfirmEmailRequestDto email) {
         service.confirmEmail(email);
     }
 
     @GetMapping("/refresh-token")
-    public ResponseEntity<JwtTokenDTO> refreshToken(@CookieValue(REFRESH_TOKEN_KEY) String refreshToken) {
-        return ResponseEntity.ok(service.refreshToken(new JwtTokenDTO(refreshToken)));
+    public ResponseEntity<JwtTokenDto> refreshToken(@CookieValue(REFRESH_TOKEN_KEY) String refreshToken) {
+        return ResponseEntity.ok(service.refreshToken(new JwtTokenDto(refreshToken)));
     }
 }

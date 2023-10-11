@@ -1,17 +1,21 @@
 package com.alex.futurity.authorizationserver.entity;
 
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.Accessors;
 
-import javax.persistence.*;
-import javax.validation.constraints.Email;
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
-import javax.validation.constraints.Size;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @Entity
 @Data
+@Accessors(chain = true)
 @NoArgsConstructor
 public class ConfirmationToken {
     @Id
@@ -31,13 +35,13 @@ public class ConfirmationToken {
     @Column(nullable = false)
     private boolean confirmed = false;
 
-    private LocalDateTime confirmedAt;
+    private ZonedDateTime confirmedAt;
 
     @NotNull
     @Column(nullable = false)
-    private LocalDateTime expiredAt;
+    private ZonedDateTime expiredAt;
 
-    public ConfirmationToken(String code, String email, LocalDateTime expiredAt) {
+    public ConfirmationToken(String code, String email, ZonedDateTime expiredAt) {
         this.code = code;
         this.email = email;
         this.expiredAt = expiredAt;

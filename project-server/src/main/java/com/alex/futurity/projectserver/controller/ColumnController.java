@@ -4,16 +4,17 @@ import com.alex.futurity.projectserver.dto.ProjectColumnDto;
 import com.alex.futurity.projectserver.dto.RequestStringDto;
 import com.alex.futurity.projectserver.service.ColumnService;
 import lombok.AllArgsConstructor;
-import lombok.extern.log4j.Log4j2;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
+
+@Slf4j
 
 @RestController
 @AllArgsConstructor
-@Log4j2
 public class ColumnController {
     private final ColumnService columnService;
 

@@ -1,5 +1,6 @@
 package com.alex.futurity.authorizationserver.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.MailSendException;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.multipart.MultipartException;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalControllerExceptionHandler {
     @ExceptionHandler({HttpClientErrorException.class})
@@ -58,7 +60,7 @@ public class GlobalControllerExceptionHandler {
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ErrorMessage> handleException(Exception e) {
         ErrorMessage errorMessage = new ErrorMessage("Something went wrong. Please try again later");
-
+        log.error("Error: ", e);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
     }
 }

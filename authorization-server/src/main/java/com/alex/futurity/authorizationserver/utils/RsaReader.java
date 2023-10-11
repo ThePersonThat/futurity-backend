@@ -1,14 +1,12 @@
 package com.alex.futurity.authorizationserver.utils;
 
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
+import com.alex.futurity.authorizationserver.properties.JwtProperties;
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.Base64Utils;
-import org.springframework.util.ResourceUtils;
 
-import javax.annotation.PostConstruct;
-import java.io.File;
-import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -16,22 +14,18 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
 
+@Slf4j
 @Component
-@Log4j2
+@RequiredArgsConstructor
 public class RsaReader {
-    @Value("${jwt.key.private.file}")
-    private String privatePath;
+    @Getter
     private PrivateKey privateKey;
-    private final FileReader reader;
-
-    public RsaReader(FileReader fileReader) {
-        this.reader = fileReader;
-    }
+    private final JwtProperties jwtProperties;
 
     @PostConstruct
-    private void readPrivateKeyFile() {
+    void readPrivateKeyFile() {
         try {
-            String privateKeyString = reader.readFileToString(privatePath);
+            String privateKeyString = FileReader.readFileToString(jwtProperties.getPrivateKeyPath());
             privateKey = parseKey(privateKeyString);
         } catch (Exception e) {
             String message = "Error parsing private key: " + e.getMessage();
@@ -41,7 +35,7 @@ public class RsaReader {
         }
     }
 
-    private PrivateKey parseKey(String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
+    private static PrivateKey parseKey(String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
         key = key.replace("-----BEGIN PRIVATE KEY-----", "")
                 .replace("-----END PRIVATE KEY-----", "")
                 .replaceAll("\\s+", "");
@@ -52,9 +46,5 @@ public class RsaReader {
         KeyFactory kf = KeyFactory.getInstance("RSA");
 
         return kf.generatePrivate(keySpec);
-    }
-
-    public PrivateKey getPrivateKey() {
-        return privateKey;
     }
 }

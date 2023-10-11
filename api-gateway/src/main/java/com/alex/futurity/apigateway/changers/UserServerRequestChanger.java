@@ -13,13 +13,12 @@ import reactor.core.publisher.Mono;
 @Component
 @AllArgsConstructor
 public class UserServerRequestChanger implements GatewayFilter {
-    private final AuthorizationHeaderHandler handler;
     private final JwtService jwtService;
 
     @Override
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         ServerHttpRequest request = exchange.getRequest();
-        String token = handler.getTokenFromHeader(request);
+        String token = AuthorizationHeaderHandler.getTokenFromHeader(request);
         Long id = jwtService.getUserIdFromToken(token);
         String path = insertIdToPath(request.getPath().value(), id);
 

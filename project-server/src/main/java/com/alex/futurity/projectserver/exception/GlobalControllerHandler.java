@@ -1,5 +1,6 @@
 package com.alex.futurity.projectserver.exception;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -8,10 +9,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import java.util.Set;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalControllerHandler {
     @ExceptionHandler({MethodArgumentNotValidException.class})
@@ -42,6 +44,7 @@ public class GlobalControllerHandler {
     @ExceptionHandler({Exception.class})
     public ResponseEntity<ErrorMessage> handleException(Exception e) {
         ErrorMessage errorMessage = new ErrorMessage("Something went wrong. Please try again later");
+        log.error("Error: ", e);
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessage);
     }

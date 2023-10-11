@@ -2,8 +2,8 @@ package com.alex.futurity.userserver.validation;
 
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 
 public class FileSizeValidator implements ConstraintValidator<FileSize, MultipartFile> {
     private int maxSize;

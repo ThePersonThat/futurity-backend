@@ -1,9 +1,9 @@
 package com.alex.futurity.userserver.controller;
 
-import com.alex.futurity.userserver.dto.LoginRequestDTO;
-import com.alex.futurity.userserver.dto.LoginResponseDTO;
-import com.alex.futurity.userserver.dto.SingUpRequestDTO;
-import com.alex.futurity.userserver.dto.UserExistRequestDTO;
+import com.alex.futurity.userserver.dto.LoginRequestDto;
+import com.alex.futurity.userserver.dto.LoginResponseDto;
+import com.alex.futurity.userserver.dto.SingUpRequestDto;
+import com.alex.futurity.userserver.dto.UserExistRequestDto;
 import com.alex.futurity.userserver.entity.User;
 import com.alex.futurity.userserver.exception.ErrorMessage;
 import com.alex.futurity.userserver.repo.UserRepository;
@@ -13,20 +13,20 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.*;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 class AuthControllerIntegrationTest extends AuthConfigurator {
-    @Autowired
-    private TestRestTemplate restTemplate;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -37,36 +37,35 @@ class AuthControllerIntegrationTest extends AuthConfigurator {
     @SneakyThrows
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     void testValidSingUp() {
-        SingUpRequestDTO dto = new SingUpRequestDTO(validEmail, validNickname, validPassword, null);
-        HttpEntity<MultiValueMap<String, Object>> body = buildMultiPartHttpEntity(dto, validAvatar);
+        SingUpRequestDto dto = new SingUpRequestDto(VALID_EMAIL, VALID_NICKNAME, VALID_PASSWORD, null);
 
-        ResponseEntity<String> response = restTemplate.postForEntity(url + "/singup/", body, String.class);
+        mockMvc.perform(multipart("/singup")
+                        .file(VALID_AVATAR)
+                        .part(buildUserPart(dto)))
+                .andExpect(status().isCreated());
 
         List<User> users = userRepository.findAll();
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
-        assertThat(response.getBody()).isNullOrEmpty();
         assertThat(users)
-                .hasSize(1);
-
-        User user = users.get(0);
-        assertThat(user.getEmail()).isEqualTo(dto.getEmail());
-        assertThat(user.getNickname()).isEqualTo(dto.getNickname());
-        assertThat(validAvatar.getBytes()).isEqualTo(user.getAvatar());
-        assertThat(user.getPassword()).isNotBlank()
-                .isNotEmpty()
-                .isNotEqualTo(dto.getPassword());
+                .singleElement()
+                .returns(dto.getEmail(), User::getEmail)
+                .returns(dto.getNickname(), User::getNickname)
+                .returns(VALID_AVATAR.getBytes(), User::getAvatar)
+                .satisfies(user ->
+                        assertThat(user.getPassword()).isNotBlank()
+                                .isNotEmpty()
+                                .isNotEqualTo(dto.getPassword()));
     }
 
     @ParameterizedTest
     @SneakyThrows
     @MethodSource("invalidRegistrationData")
     @DisplayName("SingUp: Should return 400 BAD REQUEST with correct message if the entered data is invalid")
-    void testSingUpWithInvalidFile(SingUpRequestDTO dto, MockMultipartFile avatar, ErrorMessage errorMessage) {
-        HttpEntity<MultiValueMap<String, Object>> body = buildMultiPartHttpEntity(dto, avatar);
-        ResponseEntity<ErrorMessage> response = restTemplate.postForEntity(url + "/singup/", body, ErrorMessage.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isEqualTo(errorMessage);
+    void testSingUpWithInvalidFile(SingUpRequestDto dto, MockMultipartFile avatar, ErrorMessage errorMessage) {
+        mockMvc.perform(multipart("/singup")
+                        .file(avatar)
+                        .part(buildUserPart(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().string(objectMapper.writeValueAsString(errorMessage)));
     }
 
     @Test
@@ -74,15 +73,16 @@ class AuthControllerIntegrationTest extends AuthConfigurator {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @SneakyThrows
     void testSingUpIfUserAlreadyExists() {
-        SingUpRequestDTO dto = new SingUpRequestDTO(validEmail, validNickname, validPassword, null);
-        registerUser(new SingUpRequestDTO(validEmail, validNickname, validPassword, validAvatar));
-        HttpEntity<MultiValueMap<String, Object>> body = buildMultiPartHttpEntity(dto, validAvatar);
+        SingUpRequestDto dto = new SingUpRequestDto(VALID_EMAIL, VALID_NICKNAME, VALID_PASSWORD, null);
+        registerUser(new SingUpRequestDto(VALID_EMAIL, VALID_NICKNAME, VALID_PASSWORD, VALID_AVATAR));
 
-        ResponseEntity<ErrorMessage> response = restTemplate.postForEntity(url + "/singup/", body, ErrorMessage.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
-        assertThat(response.getBody())
-                .isEqualTo(new ErrorMessage("Error. A user with the same email address already exists"));
+        mockMvc.perform(multipart("/singup")
+                        .file(VALID_AVATAR)
+                        .part(buildUserPart(dto))
+                        .header(HttpHeaders.CONTENT_TYPE, MediaType.MULTIPART_FORM_DATA_VALUE)
+                )
+                .andExpect(status().isConflict())
+                .andExpect(content().json(objectMapper.writeValueAsString(new ErrorMessage("Error. A user with the same email address already exists"))));
     }
 
     @Test
@@ -90,15 +90,15 @@ class AuthControllerIntegrationTest extends AuthConfigurator {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @SneakyThrows
     void testLoginWithValidInput() {
-        LoginRequestDTO loginDto = new LoginRequestDTO(validEmail, validPassword);
-        SingUpRequestDTO singupDto = new SingUpRequestDTO(validEmail, validNickname, validPassword, validAvatar);
+        LoginRequestDto loginDto = new LoginRequestDto(VALID_EMAIL, VALID_PASSWORD);
+        SingUpRequestDto singupDto = new SingUpRequestDto(VALID_EMAIL, VALID_NICKNAME, VALID_PASSWORD, VALID_AVATAR);
         registerUser(singupDto);
 
-        ResponseEntity<LoginResponseDTO> response = restTemplate.postForEntity(url + "/login/",
-                loginDto, LoginResponseDTO.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody()).isEqualTo(new LoginResponseDTO(1L, singupDto.getNickname()));
+        mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginDto)))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(new LoginResponseDto(1L, singupDto.getNickname()))));
     }
 
     @Test
@@ -106,54 +106,59 @@ class AuthControllerIntegrationTest extends AuthConfigurator {
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
     @SneakyThrows
     void testLoginIfUserDoesNotExist() {
-        LoginRequestDTO dto = new LoginRequestDTO(validEmail, validPassword);
-        ResponseEntity<ErrorMessage> response = restTemplate.postForEntity(url + "/login/", dto, ErrorMessage.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
-        assertThat(response.getBody())
-                .isEqualTo(new ErrorMessage("Email or password is incorrect. Check the entered data"));
+        LoginRequestDto dto = new LoginRequestDto(VALID_EMAIL, VALID_PASSWORD);
+        mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isNotFound())
+                .andExpect(content().json(objectMapper.writeValueAsString(new ErrorMessage("Email or password is incorrect. Check the entered data"))));
     }
 
     @ParameterizedTest
     @DisplayName("Login: Should return 400 with correct message if the email is invalid")
     @MethodSource("invalidLoginData")
     @SneakyThrows
-    void testLoginWithInvalidEmail(LoginRequestDTO dto, ErrorMessage errorMessage) {
-        ResponseEntity<ErrorMessage> response = restTemplate.postForEntity(url + "/login/", dto, ErrorMessage.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        assertThat(response.getBody()).isEqualTo(errorMessage);
+    void testLoginWithInvalidEmail(LoginRequestDto dto, ErrorMessage errorMessage) {
+        mockMvc.perform(post("/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().json(objectMapper.writeValueAsString(errorMessage)));
     }
 
     @Test
     @DisplayName("Should return true if user exists")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    @SneakyThrows
     void testExistIfUserExists() {
-        UserExistRequestDTO dto = new UserExistRequestDTO(validEmail);
-        SingUpRequestDTO singupDto = new SingUpRequestDTO(validEmail, validNickname, validPassword, validAvatar);
+        UserExistRequestDto dto = new UserExistRequestDto(VALID_EMAIL);
+        SingUpRequestDto singupDto = new SingUpRequestDto(VALID_EMAIL, VALID_NICKNAME, VALID_PASSWORD, VALID_AVATAR);
         registerUser(singupDto);
 
-        ResponseEntity<Boolean> response = restTemplate.postForEntity(url + "/exist", dto, Boolean.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().booleanValue()).isTrue();
+        mockMvc.perform(post("/exist")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(Boolean.TRUE.toString()));
     }
 
     @Test
     @DisplayName("Should return false if user does not exist")
     @DirtiesContext(methodMode = DirtiesContext.MethodMode.BEFORE_METHOD)
+    @SneakyThrows
     void testExistIfUserDoesNotExist() {
-        UserExistRequestDTO dto = new UserExistRequestDTO(validEmail);
+        UserExistRequestDto dto = new UserExistRequestDto(VALID_EMAIL);
 
-        ResponseEntity<Boolean> response = restTemplate.postForEntity(url + "/exist", dto, Boolean.class);
-
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getBody().booleanValue()).isFalse();
+        mockMvc.perform(post("/exist")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(dto)))
+                .andExpect(status().isOk())
+                .andExpect(content().string(Boolean.FALSE.toString()));
     }
 
 
     @SneakyThrows
-    private void registerUser(SingUpRequestDTO dto) {
+    private void registerUser(SingUpRequestDto dto) {
         User user = dto.toUser();
         user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);

@@ -1,10 +1,11 @@
 package com.alex.futurity.userserver.validation;
 
+import jakarta.validation.ConstraintValidator;
+import jakarta.validation.ConstraintValidatorContext;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.ConstraintValidator;
-import javax.validation.ConstraintValidatorContext;
 import java.util.List;
+import java.util.Optional;
 
 public class FileTypeValidator implements ConstraintValidator<FileType, MultipartFile> {
     private List<String> types;
@@ -16,15 +17,14 @@ public class FileTypeValidator implements ConstraintValidator<FileType, Multipar
 
     @Override
     public boolean isValid(MultipartFile file, ConstraintValidatorContext constraintValidatorContext) {
-        String filename = file.getOriginalFilename();
-        int i = filename.lastIndexOf('.');
+        return Optional.ofNullable(file.getOriginalFilename())
+                .filter(filename -> filename.contains("."))
+                .map(this::getExtension)
+                .map(extension -> types.contains(extension))
+                .orElse(false);
+    }
 
-        if (i == -1) {
-            return false;
-        }
-
-        String extension = filename.substring(i + 1);
-
-        return types.contains(extension);
+    private String getExtension(String filename) {
+        return filename.substring(filename.lastIndexOf(".") + 1);
     }
 }

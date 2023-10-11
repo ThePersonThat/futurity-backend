@@ -1,5 +1,6 @@
 package com.alex.futurity.apigateway.security;
 
+import lombok.experimental.UtilityClass;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -12,7 +13,7 @@ import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
 
-@Component
+@UtilityClass
 public class AuthorizationHeaderHandler {
     private final String AUTHORIZATION = "Authorization";
 

@@ -1,25 +1,24 @@
 package com.alex.futurity.authorizationserver.utils;
 
-import lombok.extern.log4j.Log4j2;
-import org.springframework.stereotype.Component;
+import lombok.experimental.UtilityClass;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-@Component
-@Log4j2
+@Slf4j
+@UtilityClass
 public class FileReader {
-    public String readFileToString(String path) {
+    public static String readFileToString(String path) {
         try {
-            File file = ResourceUtils.getFile("classpath:" + path);
+            File file = ResourceUtils.getFile(ResourceUtils.CLASSPATH_URL_PREFIX + path);
             return new String(Files.readAllBytes(file.toPath()));
         } catch (IOException e) {
-            String message = String.format("Error loading \"%s\" file: " + e.getMessage(), path);
-            log.error(message);
-
-            throw new IllegalStateException(message);
+            throw new IllegalStateException(
+                    String.format("Error loading \"%s\" file: " + e.getMessage(), path)
+            );
         }
     }
 }

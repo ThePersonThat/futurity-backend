@@ -2,6 +2,7 @@ package com.alex.futurity.apigateway.config;
 
 import com.alex.futurity.apigateway.changers.UserServerRequestChanger;
 import com.alex.futurity.apigateway.security.JwtFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cloud.gateway.route.RouteLocator;
 import org.springframework.cloud.gateway.route.builder.RouteLocatorBuilder;
@@ -9,6 +10,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@RequiredArgsConstructor
 public class GatewayConfig {
     @Value("${authorization-server}")
     private String authorizationServer;
@@ -18,11 +20,6 @@ public class GatewayConfig {
     private String projectServer;
     private final JwtFilter filter;
     private final UserServerRequestChanger requestChanger;
-
-    public GatewayConfig(JwtFilter filter, UserServerRequestChanger requestChanger) {
-        this.filter = filter;
-        this.requestChanger = requestChanger;
-    }
 
     @Bean
     public RouteLocator routes(RouteLocatorBuilder builder) {
@@ -34,14 +31,14 @@ public class GatewayConfig {
                         .filters(f -> {
                             f.filter(filter);
                             f.filter(requestChanger);
-                            f.rewritePath("/user/(?<segment>.*)", "/${segment}/");
+                            f.rewritePath("/user/(?<segment>.*)", "/${segment}");
                             return f;
                         })
                         .uri(userServer))
                 .route(r -> r.path("/project/**").filters(f -> {
                     f.filter(filter);
                     f.filter(requestChanger);
-                    f.rewritePath("/project/(?<segment>.*)", "/${segment}/");
+                    f.rewritePath("/project/(?<segment>.*)", "/${segment}");
                     return f;
                 }).uri(projectServer))
                 .build();

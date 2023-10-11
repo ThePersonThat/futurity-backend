@@ -1,10 +1,12 @@
 package com.alex.futurity.apigateway.util;
 
-import lombok.extern.log4j.Log4j2;
-import org.springframework.beans.factory.annotation.Value;
+import com.alex.futurity.apigateway.properties.JwtProperties;
+import jakarta.annotation.PostConstruct;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
@@ -12,22 +14,18 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 
+@Slf4j
 @Component
-@Log4j2
+@RequiredArgsConstructor
 public class RsaReader {
-    @Value("${jwt.key.public.key}")
-    private String publicPath;
-    private FileReader reader;
+    @Getter
     private PublicKey publicKey;
-
-    public RsaReader(FileReader reader) {
-        this.reader = reader;
-    }
+    private final JwtProperties jwtProperties;
 
     @PostConstruct
     private void readPublicKey() {
         try {
-            String privateKeyString = reader.readFileToString(publicPath);
+            String privateKeyString = FileReader.readFileToString(jwtProperties.getPublicKeyPath());
             publicKey = parseKey(privateKeyString);
         } catch (Exception e) {
             String message = "Error parsing private key: " + e.getMessage();
@@ -48,9 +46,5 @@ public class RsaReader {
         KeyFactory kf = KeyFactory.getInstance("RSA");
 
         return kf.generatePublic(keySpec);
-    }
-
-    public PublicKey getPublicKey() {
-        return publicKey;
     }
 }

@@ -15,7 +15,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 import java.util.List;
 
 @Validated
@@ -32,7 +32,7 @@ public class ProjectController {
             message = "Preview is too large. Max size 5MB")
     @FileType(types = {"jpeg", "jpg", "png", "gif"},
             message = "Wrong image type. " +
-                    "Must be one of the following: .jpeg, .png, .gif") MultipartFile preview, @Valid @RequestPart CreationProjectRequestDTO project) {
+                    "Must be one of the following: .jpeg, .png, .gif") MultipartFile preview, @Valid @RequestPart CreationProjectRequestDto project) {
         project.setUserId(userId);
         project.setPreview(preview);
 
@@ -42,7 +42,7 @@ public class ProjectController {
     }
 
     @GetMapping("/{userId}/projects")
-    public List<ProjectDTO> getProjects(@PathVariable long userId) {
+    public List<ProjectDto> getProjects(@PathVariable long userId) {
         log.info("Handling getting projects request. User id: {}", userId);
 
         return projectService.getProjects(userId);
